@@ -2,9 +2,9 @@
   "name": "uniswapx-filler",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/main.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
+    "@uniswap/uniswapx-sdk": "2.0.1-alpha.10",
     "axios": "^1.7.4",
     "ethers": "^6.13.2"
   }

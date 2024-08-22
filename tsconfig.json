@@ -33,7 +33,10 @@
     "allowSyntheticDefaultImports": true,
     "incremental": false,
     "pretty": true,
-    "useDefineForClassFields": true
+    "useDefineForClassFields": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
