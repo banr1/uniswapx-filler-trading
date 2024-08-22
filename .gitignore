@@ -1,0 +1,11 @@
+# .gitignore
+
+node_modules
+.env
+.env.dev
+.pnpm-store/
+dist/
+coverage/
+.sentryclirc
+.turbo
+.DS_store
