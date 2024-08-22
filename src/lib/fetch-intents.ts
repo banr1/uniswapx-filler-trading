@@ -1,4 +1,4 @@
-// lib/fetch-orders.ts
+// lib/fetch-intents.ts
 
 import { OrderType } from '@uniswap/uniswapx-sdk';
 import axios from 'axios';
