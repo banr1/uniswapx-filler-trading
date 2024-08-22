@@ -28,8 +28,8 @@ const main = async () => {
   // Call fetchIntents immediately
   await fetchAndLogIntents();
 
-  // Set up an interval to call fetchIntents every 3 second
-  setInterval(fetchAndLogIntents, 3000);
+  // Set up an interval to call fetchIntents every 5 second
+  setInterval(fetchAndLogIntents, 5000);
 };
 
 // Run the main function
