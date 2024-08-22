@@ -2,12 +2,11 @@
 
 import { OrderType } from '@uniswap/uniswapx-sdk';
 import axios from 'axios';
-
-import { UNISWAPX_API_ENDPOINT } from '@/constants/api-endpoint';
-import { UNISWAP_REACTOR_ADDRESSES } from '@/constants/uniswap-reactor-addresses';
-import { ChainId } from '@/types/chain-id';
-import { DutchIntentV2, FilledDutchIntentV2, OpenDutchIntentV2, RawDutchIntentV2 } from '@/types/dutch-intent-v2';
-import { FetchOrdersParams } from '@/types/fetch-orders-params';
+import { FetchOrdersParams } from '../types/fetch-orders-params';
+import { DutchIntentV2, FilledDutchIntentV2, OpenDutchIntentV2, RawDutchIntentV2 } from '../types/dutch-intent-v2';
+import { UNISWAPX_API_ENDPOINT } from '../constants/api-endpoint';
+import { ChainId } from '../types/chain-id';
+import { UNISWAP_REACTOR_ADDRESSES } from '../constants/uniswap-reactor-addresses';
 
 export async function fetchIntents(params: FetchOrdersParams): Promise<DutchIntentV2[]> {
   let intents;

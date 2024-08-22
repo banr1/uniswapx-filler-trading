@@ -1,7 +1,7 @@
 // constants/hash.ts
 
-import { ChainId } from '@/types/chain-id';
-import { Address } from '@/types/hash';
+import { ChainId } from '../types/chain-id';
+import { Address } from '../types/hash';
 
 export const HASH: Record<ChainId, Record<Address, { name: string }>> = {
   1: {

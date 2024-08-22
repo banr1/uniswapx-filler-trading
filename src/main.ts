@@ -1,8 +1,8 @@
 // main.ts
 
 import { OrderType } from '@uniswap/uniswapx-sdk';
-import { FetchOrdersParams } from '@/types/fetch-orders-params';
 import { fetchIntents } from './lib/fetch-intents';
+import { FetchOrdersParams } from './types/fetch-orders-params';
 
 const main = async () => {
   const params: FetchOrdersParams = {

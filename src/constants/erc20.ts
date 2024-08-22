@@ -1,7 +1,7 @@
 // constants/erc20.ts
 
-import { ChainId } from '@/types/chain-id';
-import { Address } from '@/types/hash';
+import { ChainId } from '../types/chain-id';
+import { Address } from '../types/hash';
 
 export const ERC20: Record<ChainId, Record<Address, { name: string; decimals: number }>> = {
   1: {
