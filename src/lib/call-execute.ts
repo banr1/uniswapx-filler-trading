@@ -12,6 +12,7 @@ export const callExecute = async (intent: DutchIntentV2) => {
   const contractAddress = UNISWAP_REACTOR_ADDRESSES[intent.chainId];
   const reactor = new ethers.Contract(contractAddress, UNISWAP_REACTOR_ABI, provider);
 
-  // await reactor.execute();
+  await reactor.execute(intent);
+  console.log('intent:', intent);
   console.log('reactor:', reactor.address);
 };
