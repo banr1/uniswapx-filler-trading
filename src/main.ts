@@ -3,8 +3,9 @@
 import { OrderType } from '@uniswap/uniswapx-sdk';
 import { fetchIntents } from './lib/fetch-intents';
 import { FetchOrdersParams } from './types/fetch-orders-params';
+import { callExecute } from './lib/call-execute';
 
-const main = async () => {
+const monitorIntents = async () => {
   const params: FetchOrdersParams = {
     chainId: 42161,
     limit: 10,
@@ -16,20 +17,26 @@ const main = async () => {
     includeV2: true,
   };
 
-  const fetchAndLogIntents = async () => {
-    try {
-      const intents = await fetchIntents(params);
-      console.log('Fetched intents:', intents);
-    } catch (error) {
-      console.error('Error fetching intents:', error);
+  try {
+    const intents = await fetchIntents(params);
+    if (intents.length > 0) {
+      const intent = intents[0];
+      if (intent === undefined) return;
+      await callExecute(intent);
+    } else {
+      console.log('No intents found');
     }
-  };
+  } catch (error) {
+    console.error('Error fetching intents:', error);
+  }
+};
 
+const main = async () => {
   // Call fetchIntents immediately
-  await fetchAndLogIntents();
+  await monitorIntents();
 
   // Set up an interval to call fetchIntents every 5 second
-  setInterval(fetchAndLogIntents, 5000);
+  setInterval(monitorIntents, 5000);
 };
 
 // Run the main function
