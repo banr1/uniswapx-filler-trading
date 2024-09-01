@@ -7,7 +7,6 @@ import { callExecute } from './lib/call-execute';
 
 const monitorIntents = async () => {
   const chainId = 42161;
-  const permit2Address = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
   const params: FetchOrdersParams = {
     chainId,
     limit: 10,
@@ -20,11 +19,11 @@ const monitorIntents = async () => {
   };
 
   try {
-    const intents = await fetchIntents(params, permit2Address);
+    const intents = await fetchIntents(params);
     if (intents.length > 0) {
       const intent = intents[0];
       if (intent === undefined) return;
-      await callExecute(intent, chainId, permit2Address);
+      await callExecute(intent, chainId);
     } else {
       console.log('No intents found');
     }

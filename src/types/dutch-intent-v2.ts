@@ -9,7 +9,6 @@ export type OpenDutchIntentV2 = {
   hash: IntentHash;
   input: DutchInput;
   outputs: DutchOutput[];
-  settlements: null;
   decayStartTime: number;
   decayEndTime: number;
   deadline: number;
@@ -17,7 +16,6 @@ export type OpenDutchIntentV2 = {
   filler: Address;
   reactor: Address;
   chainId: ChainId;
-  txHash: null;
   orderStatus: 'open';
   type: OrderType.Dutch_V2;
   version: 2;
@@ -26,9 +24,9 @@ export type OpenDutchIntentV2 = {
 
 // There's a example of a raw Dutch intent in the reference directory:
 // reference/raw-dutch-intent-v2.json
-export type RawDutchIntentV2 = {
+export type RawOpenDutchIntentV2 = {
   type: OrderType.Dutch_V2;
-  orderStatus: 'filled' | 'open';
+  orderStatus: 'open';
   signature: string;
   encodedOrder: string;
   chainId: ChainId;

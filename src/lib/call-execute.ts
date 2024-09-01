@@ -7,17 +7,15 @@ import { V2DutchOrderReactor__factory } from '@uniswap/uniswapx-sdk/dist/src/con
 import { SignedOrderStruct } from '@uniswap/uniswapx-sdk/dist/src/contracts/ExclusiveDutchOrderReactor';
 import { DutchOrderBuilder, NonceManager } from '@uniswap/uniswapx-sdk';
 import { ChainId } from '../types/chain-id';
-import { Address } from '../types/hash';
+import { PERMIT2ADDRESSES } from '../constants/permit2addresses';
 
 export const buildAndSignIntent = (
   intent: OpenDutchIntentV2,
   wallet: ethers.Wallet,
   nonce: BigNumber,
   chainId: ChainId,
-  reactorAddress: Address,
-  permit2Address: Address,
 ): SignedOrderStruct => {
-  const builder = new DutchOrderBuilder(chainId, reactorAddress, permit2Address);
+  const builder = new DutchOrderBuilder(chainId, UNISWAP_REACTOR_ADDRESSES[chainId], PERMIT2ADDRESSES[chainId]);
 
   const order = builder
     .deadline(intent.deadline)
@@ -40,17 +38,17 @@ export const buildAndSignIntent = (
   };
 };
 
-export const callExecute = async (intent: OpenDutchIntentV2, chainId: ChainId, permit2Address: Address) => {
+export const callExecute = async (intent: OpenDutchIntentV2, chainId: ChainId) => {
   const provider = new ethers.providers.JsonRpcProvider(
     'https://arb-mainnet.g.alchemy.com/v2/f5kl3xhwBkEw2ECT58X2yHGsrb6b-z4A',
   );
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY || '', provider);
   const contractAddress = UNISWAP_REACTOR_ADDRESSES[intent.chainId];
   const reactor = V2DutchOrderReactor__factory.connect(contractAddress, signer);
-  const nonceMgr = new NonceManager(provider, chainId, permit2Address);
+  const nonceMgr = new NonceManager(provider, chainId, PERMIT2ADDRESSES[chainId]);
   const nonce = await nonceMgr.useNonce(intent.swapper);
 
-  const signedIntent = buildAndSignIntent(intent, signer, nonce, chainId, contractAddress, permit2Address);
+  const signedIntent = buildAndSignIntent(intent, signer, nonce, chainId);
 
   const tx = await reactor.execute(signedIntent, { gasLimit: 5000000 });
   const txReceipt = await tx.wait();
