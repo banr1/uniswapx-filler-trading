@@ -50,10 +50,13 @@ export const callExecute = async (intent: OpenDutchIntentV2, chainId: ChainId) =
 
   const signedIntent = buildAndSignIntent(intent, signer, nonce, chainId);
 
-  const tx = await reactor.execute(signedIntent, { gasLimit: 5000000 });
-  const txReceipt = await tx.wait();
-
-  console.log('txReceipt', txReceipt);
-
-  return txReceipt;
+  try {
+    const tx = await reactor.execute(signedIntent, { gasLimit: 10000000 });
+    const txReceipt = await tx.wait();
+    console.log('txReceipt', txReceipt);
+    return txReceipt;
+  } catch (error) {
+    console.error('Error in callExecute:', error);
+    throw error;
+  }
 };
