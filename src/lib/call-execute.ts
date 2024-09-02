@@ -3,7 +3,7 @@
 import { BigNumber, ethers } from 'ethers';
 import { OpenDutchIntentV2 } from '../types/dutch-intent-v2';
 import { UNISWAP_REACTOR_ADDRESSES } from '../constants/uniswap-reactor-addresses';
-import { V2DutchOrderReactor__factory } from '@uniswap/uniswapx-sdk/dist/src/contracts';
+import { MockERC20__factory, V2DutchOrderReactor__factory } from '@uniswap/uniswapx-sdk/dist/src/contracts';
 import { SignedOrderStruct } from '@uniswap/uniswapx-sdk/dist/src/contracts/ExclusiveDutchOrderReactor';
 import { DutchOrderBuilder, NonceManager } from '@uniswap/uniswapx-sdk';
 import { ChainId } from '../types/chain-id';
@@ -43,18 +43,25 @@ export const callExecute = async (intent: OpenDutchIntentV2, chainId: ChainId) =
     'https://arb-mainnet.g.alchemy.com/v2/f5kl3xhwBkEw2ECT58X2yHGsrb6b-z4A',
   );
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY || '', provider);
-  const contractAddress = UNISWAP_REACTOR_ADDRESSES[intent.chainId];
-  const reactor = V2DutchOrderReactor__factory.connect(contractAddress, signer);
+  const outputTokenAddress = intent.outputs[0]!.token;
+  const outputToken = MockERC20__factory.connect(outputTokenAddress, signer);
+
+  const reactorContractAddress = UNISWAP_REACTOR_ADDRESSES[intent.chainId];
+  const reactor = V2DutchOrderReactor__factory.connect(reactorContractAddress, signer);
   const nonceMgr = new NonceManager(provider, chainId, PERMIT2ADDRESSES[chainId]);
   const nonce = await nonceMgr.useNonce(intent.swapper);
 
   const signedIntent = buildAndSignIntent(intent, signer, nonce, chainId);
 
   try {
-    const tx = await reactor.execute(signedIntent, { gasLimit: 10000000 });
-    const txReceipt = await tx.wait();
-    console.log('txReceipt', txReceipt);
-    return txReceipt;
+    const tx1 = await outputToken.approve(reactorContractAddress, ethers.constants.MaxUint256);
+    const txReceipt1 = await tx1.wait();
+    console.log('txReceipt1:', txReceipt1);
+
+    const tx2 = await reactor.execute(signedIntent, { gasLimit: 10000000 });
+    const txReceipt2 = await tx2.wait();
+    console.log('txReceipt2:', txReceipt2);
+    return txReceipt2;
   } catch (error) {
     console.error('Error in callExecute:', error);
     throw error;

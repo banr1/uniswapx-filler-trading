@@ -28,6 +28,7 @@
   "dependencies": {
     "@uniswap/uniswapx-sdk": "2.0.1-alpha.10",
     "axios": "^1.7.4",
-    "ethers": "^5.7.2"
+    "ethers": "^5.7.2",
+    "winston": "^3.14.2"
   }
 }
