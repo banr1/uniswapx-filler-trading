@@ -4,6 +4,7 @@ import { OrderType } from '@uniswap/uniswapx-sdk';
 import { fetchIntents } from './lib/fetch-intents';
 import { FetchOrdersParams } from './types/fetch-orders-params';
 import { callExecute } from './lib/call-execute';
+import { logger } from './lib/logger';
 
 const monitorIntents = async () => {
   const chainId = 42161;
@@ -25,10 +26,10 @@ const monitorIntents = async () => {
       if (intent === undefined) return;
       await callExecute(intent, chainId);
     } else {
-      console.log('No intents found');
+      logger.info('No intents found');
     }
   } catch (error) {
-    console.error('An error occurred in the monitorIntents function:', error);
+    logger.error('An error occurred in the monitorIntents function:', error);
   }
 };
 
@@ -42,5 +43,5 @@ const main = async () => {
 
 // Run the main function
 main().catch(error => {
-  console.error('An error occurred in the main function:', error);
+  logger.error('An error occurred in the main function:', error);
 });

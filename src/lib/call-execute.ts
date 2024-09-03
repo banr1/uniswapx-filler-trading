@@ -8,6 +8,7 @@ import { SignedOrderStruct } from '@uniswap/uniswapx-sdk/dist/src/contracts/Excl
 import { DutchOrderBuilder, NonceManager } from '@uniswap/uniswapx-sdk';
 import { ChainId } from '../types/chain-id';
 import { PERMIT2ADDRESSES } from '../constants/permit2addresses';
+import { logger } from './logger';
 
 export const buildAndSignIntent = (
   intent: OpenDutchIntentV2,
@@ -56,14 +57,14 @@ export const callExecute = async (intent: OpenDutchIntentV2, chainId: ChainId) =
   try {
     const tx1 = await outputToken.approve(reactorContractAddress, ethers.constants.MaxUint256);
     const txReceipt1 = await tx1.wait();
-    console.log('txReceipt1:', txReceipt1);
+    logger.info('Output token approval tx receipt:', { txReceipt: txReceipt1 });
 
     const tx2 = await reactor.execute(signedIntent, { gasLimit: 10000000 });
     const txReceipt2 = await tx2.wait();
-    console.log('txReceipt2:', txReceipt2);
+    logger.info('Execution tx receipt:', { txReceipt: txReceipt2 });
     return txReceipt2;
   } catch (error) {
-    console.error('Error in callExecute:', error);
+    logger.error('Error in callExecute:', { error });
     throw error;
   }
 };
