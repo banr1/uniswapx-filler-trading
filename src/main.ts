@@ -35,19 +35,19 @@ const monitorIntents = async () => {
     const outputToken = intent.outputs[0]!;
     const outputTokenName = ERC20[chainId][outputToken.token]!.name;
     if (outputTokenName !== 'USDC') {
-      consola.info('Intents found!✨ But output token is not USDC but', outputTokenName);
+      consola.info('An intent found!✨ But output token is not USDC but', outputTokenName);
       return;
     }
 
     if (outputToken.startAmount.gt(450_000_000)) {
       consola.info(
-        'Intents found!✨ But output amount is greater than 450 USDC (',
+        'An USDC intent found!✨ But output amount is greater than 450 USDC (',
         outputToken.startAmount.toString(),
         ')',
       );
       return;
     }
-    consola.info('Intents found:', intent);
+    consola.info('An USDC intent found!!✨:', intent);
 
     const provider = new ethers.providers.JsonRpcProvider(
       'https://arb-mainnet.g.alchemy.com/v2/f5kl3xhwBkEw2ECT58X2yHGsrb6b-z4A',
@@ -58,6 +58,8 @@ const monitorIntents = async () => {
     if (outputTokenName !== 'USDC') {
       const approveTxReceipt = await callApprove(intent, signer);
       consola.success(outputTokenName, ' approved successfully!!🎉 Tx receipt:', approveTxReceipt);
+    } else {
+      consola.info('USDC already approved');
     }
 
     const executeTxReceipt = await callExecute(intent, signer, provider);
@@ -68,11 +70,14 @@ const monitorIntents = async () => {
 };
 
 const main = async () => {
+  const interval = 3500;
+  consola.info('Starting the main function with', interval / 1000, 's interval');
+
   // Call fetchIntents immediately
   await monitorIntents();
 
   // Set up an interval to call fetchIntents every 3.5 second
-  setInterval(monitorIntents, 3500);
+  setInterval(monitorIntents, interval);
 };
 
 // Run the main function
