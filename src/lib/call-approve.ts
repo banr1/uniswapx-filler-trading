@@ -18,7 +18,7 @@ export const callApprove = async (intent: OpenDutchIntentV2, signer: ethers.Wall
 
     return txReceipt;
   } catch (error) {
-    consola.error('Error approving token:', error);
+    consola.error('Error🚨 in approving token:', error);
     throw error;
   }
 };

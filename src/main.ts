@@ -27,7 +27,7 @@ const monitorIntents = async () => {
   try {
     const intents = await fetchIntents(params);
     if (intents.length == 0 || intents[0] === undefined) {
-      consola.info('No intents found');
+      consola.info('No intents found 🍪');
       return;
     }
 
@@ -61,19 +61,19 @@ const monitorIntents = async () => {
       const approveTxReceipt = await callApprove(intent, signer);
       consola.success(outputTokenName, ' approved successfully!!🎉 Tx receipt:', approveTxReceipt);
     } else {
-      consola.info('USDC/USDT already approved');
+      consola.info('USDC/USDT already approved ✅');
     }
 
     const executeTxReceipt = await callExecute(intent, signer, provider);
     consola.success('intent executed successfully!!🎉 Tx receipt:', executeTxReceipt);
   } catch (error) {
-    consola.error('An error occurred🚨 in the monitorIntents function:', error);
+    consola.error('An error occurred 🚨 in the monitorIntents function:', error);
   }
 };
 
 const main = async () => {
   const interval = 3500;
-  consola.info('Starting the main function with', interval / 1000, 's interval');
+  consola.info('Starting the main function 🚀 with', interval / 1000, 's interval');
 
   // Call fetchIntents immediately
   await monitorIntents();
@@ -84,5 +84,5 @@ const main = async () => {
 
 // Run the main function
 main().catch(error => {
-  consola.error('An error occurred in the main function:', error);
+  consola.error('An error occurred 🚨 in the main function:', error);
 });
