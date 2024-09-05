@@ -8,6 +8,8 @@ import { ERC20 } from './constants/erc20';
 import { consola } from 'consola';
 import { ethers } from 'ethers';
 import { callApprove } from './lib/call-approve';
+import { MockERC20__factory } from '@uniswap/uniswapx-sdk/dist/src/contracts';
+import { formatUnits } from 'ethers/lib/utils';
 
 const SUPPORT_OUTPUT_TOKENS = ['USDC', 'USDT'];
 
@@ -23,6 +25,28 @@ const monitorIntents = async () => {
     orderType: OrderType.Dutch_V2,
     includeV2: true,
   };
+  const provider = new ethers.providers.JsonRpcProvider(
+    'https://arb-mainnet.g.alchemy.com/v2/f5kl3xhwBkEw2ECT58X2yHGsrb6b-z4A',
+  );
+  const signer = new ethers.Wallet(process.env.PRIVATE_KEY || '', provider);
+  const ethBalance = await provider.getBalance(signer.address);
+  const usdcBalance = await MockERC20__factory.connect(
+    '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+    provider,
+  ).balanceOf(signer.address);
+  const usdtBalance = await MockERC20__factory.connect(
+    '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+    provider,
+  ).balanceOf(signer.address);
+  consola.log(
+    "signer's balances 🏦 :",
+    formatUnits(ethBalance, 18),
+    'ETH,',
+    formatUnits(usdcBalance, 6),
+    'USDC,',
+    formatUnits(usdtBalance, 6),
+    'USDT',
+  );
 
   try {
     const intents = await fetchIntents(params);
@@ -50,11 +74,6 @@ const monitorIntents = async () => {
       return;
     }
     consola.info('An USDC/USDT intent found!!✨:', intent);
-
-    const provider = new ethers.providers.JsonRpcProvider(
-      'https://arb-mainnet.g.alchemy.com/v2/f5kl3xhwBkEw2ECT58X2yHGsrb6b-z4A',
-    );
-    const signer = new ethers.Wallet(process.env.PRIVATE_KEY || '', provider);
 
     // Approve the output token if it is not USDC/USDT
     if (!SUPPORT_OUTPUT_TOKENS.includes(outputTokenName)) {
