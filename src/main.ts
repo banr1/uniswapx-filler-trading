@@ -9,6 +9,8 @@ import { consola } from 'consola';
 import { ethers } from 'ethers';
 import { callApprove } from './lib/call-approve';
 
+const SUPPORT_OUTPUT_TOKENS = ['USDC', 'USDT'];
+
 const monitorIntents = async () => {
   const chainId = 42161;
   const params: FetchOrdersParams = {
@@ -31,39 +33,39 @@ const monitorIntents = async () => {
 
     const intent = intents[0];
 
-    // Check if the output token is USDC
+    // Check if the output token is USDC/USDT
     const outputToken = intent.outputs[0]!;
     const outputTokenName = ERC20[chainId][outputToken.token]!.name;
-    if (outputTokenName !== 'USDC') {
-      consola.info('An intent found!✨ But output token is not USDC but', outputTokenName);
+    if (!SUPPORT_OUTPUT_TOKENS.includes(outputTokenName)) {
+      consola.info('An intent found!✨ But output token is not supported but', outputTokenName);
       return;
     }
 
-    if (outputToken.startAmount.gt(450_000_000)) {
+    if (outputToken.startAmount.gt(250_000_000)) {
       consola.info(
-        'An USDC intent found!✨ But output amount is greater than 450 USDC (',
+        'An USDC/USDT intent found!✨ But output amount is greater than 250 (',
         outputToken.startAmount.toString(),
         ')',
       );
       return;
     }
-    consola.info('An USDC intent found!!✨:', intent);
+    consola.info('An USDC/USDT intent found!!✨:', intent);
 
     const provider = new ethers.providers.JsonRpcProvider(
       'https://arb-mainnet.g.alchemy.com/v2/f5kl3xhwBkEw2ECT58X2yHGsrb6b-z4A',
     );
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY || '', provider);
 
-    // Approve the output token if it is not USDC
-    if (outputTokenName !== 'USDC') {
+    // Approve the output token if it is not USDC/USDT
+    if (!SUPPORT_OUTPUT_TOKENS.includes(outputTokenName)) {
       const approveTxReceipt = await callApprove(intent, signer);
       consola.success(outputTokenName, ' approved successfully!!🎉 Tx receipt:', approveTxReceipt);
     } else {
-      consola.info('USDC already approved');
+      consola.info('USDC/USDT already approved');
     }
 
     const executeTxReceipt = await callExecute(intent, signer, provider);
-    consola.success('Intent executed successfully!!🎉 Tx receipt:', executeTxReceipt);
+    consola.success('intent executed successfully!!🎉 Tx receipt:', executeTxReceipt);
   } catch (error) {
     consola.error('An error occurred🚨 in the monitorIntents function:', error);
   }
