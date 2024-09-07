@@ -43,7 +43,7 @@ const monitorIntents = async () => {
     '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
     provider,
   ).balanceOf(signer.address);
-  consola.log(
+  consola.info(
     "signer's balances 🏦 :",
     formatUnits(ethBalance, 18),
     'ETH,',
