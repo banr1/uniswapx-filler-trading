@@ -5,8 +5,9 @@
   "main": "main.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "export $(grep -v '^#' .env | xargs) && nodemon src/main.ts",
-    "start": "export $(grep -v '^#' .env | xargs) && ts-node src/main.ts",
+    "dev": "nodemon src/main.ts",
+    "start": "ts-node src/main.ts",
+    "load-env": "export $(grep -v '^#' .env | xargs)",
     "generate-types": "typechain --target=ethers-v5 'abi/*.json'"
   },
   "keywords": [],
