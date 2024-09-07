@@ -14,6 +14,10 @@ import { formatUnits } from 'ethers/lib/utils';
 const SUPPORT_OUTPUT_TOKENS = ['USDC', 'USDT'];
 
 const monitorIntents = async () => {
+  if (!process.env.PRIVATE_KEY) {
+    throw new Error('PRIVATE_KEY environment variable is not set');
+  }
+
   const chainId = 42161;
   const params: FetchOrdersParams = {
     chainId,
@@ -25,6 +29,7 @@ const monitorIntents = async () => {
     orderType: OrderType.Dutch_V2,
     includeV2: true,
   };
+
   const provider = new ethers.providers.JsonRpcProvider(
     'https://arb-mainnet.g.alchemy.com/v2/f5kl3xhwBkEw2ECT58X2yHGsrb6b-z4A',
   );
