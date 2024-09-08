@@ -52,7 +52,7 @@ export const callExecute = async (
   const signedIntent = await buildAndSignIntent(intent, signer, provider);
 
   try {
-    const tx = await reactor.execute(signedIntent, { gasLimit: 50_000_000 }); // 0.5 Gwei
+    const tx = await reactor.execute(signedIntent, { gasLimit: 600_000 });
     const txReceipt = await tx.wait();
     return txReceipt;
   } catch (error) {
