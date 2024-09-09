@@ -33,7 +33,7 @@ const monitorIntents = async () => {
   const provider = new ethers.providers.JsonRpcProvider(
     'https://arb-mainnet.g.alchemy.com/v2/f5kl3xhwBkEw2ECT58X2yHGsrb6b-z4A',
   );
-  const signer = new ethers.Wallet(process.env.PRIVATE_KEY || '', provider);
+  const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
   const ethBalance = await provider.getBalance(signer.address);
   const usdcBalance = await MockERC20__factory.connect(
     '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
