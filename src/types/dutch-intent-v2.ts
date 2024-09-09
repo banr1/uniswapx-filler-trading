@@ -1,6 +1,6 @@
 // types/dutch-intent-v2.ts
 
-import { CosignerData, DutchInput, DutchOutput, OrderType } from '@uniswap/uniswapx-sdk';
+import { CosignerData, DutchInput, DutchOutput, OrderType } from '@banr1/uniswapx-sdk';
 
 import { ChainId } from './chain-id';
 import { Address, IntentHash, TxHash } from './hash';

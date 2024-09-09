@@ -1,6 +1,6 @@
 // lib/fetch-intents.ts
 
-import { CosignedV2DutchOrder, OrderType } from '@uniswap/uniswapx-sdk';
+import { CosignedV2DutchOrder, OrderType } from '@banr1/uniswapx-sdk';
 import axios from 'axios';
 import { FetchOrdersParams } from '../types/fetch-orders-params';
 import { OpenDutchIntentV2, RawOpenDutchIntentV2 } from '../types/dutch-intent-v2';

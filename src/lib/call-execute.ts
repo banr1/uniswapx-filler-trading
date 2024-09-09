@@ -3,9 +3,9 @@
 import { ethers } from 'ethers';
 import { OpenDutchIntentV2 } from '../types/dutch-intent-v2';
 import { UNISWAP_REACTOR_ADDRESSES } from '../constants/uniswap-reactor-addresses';
-import { V2DutchOrderReactor__factory } from '@uniswap/uniswapx-sdk/dist/src/contracts';
-import { SignedOrderStruct } from '@uniswap/uniswapx-sdk/dist/src/contracts/ExclusiveDutchOrderReactor';
-import { DutchOrderBuilder, NonceManager } from '@uniswap/uniswapx-sdk';
+import { V2DutchOrderReactor__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
+import { SignedOrderStruct } from '@banr1/uniswapx-sdk/dist/src/contracts/ExclusiveDutchOrderReactor';
+import { DutchOrderBuilder, NonceManager } from '@banr1/uniswapx-sdk';
 import { PERMIT2ADDRESSES } from '../constants/permit2addresses';
 import { consola } from 'consola';
 

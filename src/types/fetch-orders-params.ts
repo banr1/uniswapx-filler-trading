@@ -1,6 +1,6 @@
 // types/fetch-orders-params.ts
 
-import { OrderType } from '@uniswap/uniswapx-sdk';
+import { OrderType } from '@banr1/uniswapx-sdk';
 
 import { ChainId } from './chain-id';
 import { IntentStatus } from './intent-status';

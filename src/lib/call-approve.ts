@@ -1,6 +1,6 @@
 // lib/call-approval.ts
 
-import { MockERC20__factory } from '@uniswap/uniswapx-sdk/dist/src/contracts';
+import { MockERC20__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { OpenDutchIntentV2 } from '../types/dutch-intent-v2';
 import { ethers } from 'ethers';
 import { UNISWAP_REACTOR_ADDRESSES } from '../constants/uniswap-reactor-addresses';

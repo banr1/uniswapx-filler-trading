@@ -1,6 +1,6 @@
 // main.ts
 
-import { OrderType } from '@uniswap/uniswapx-sdk';
+import { OrderType } from '@banr1/uniswapx-sdk';
 import { fetchIntents } from './lib/fetch-intents';
 import { FetchOrdersParams } from './types/fetch-orders-params';
 import { callExecute } from './lib/call-execute';
@@ -8,7 +8,7 @@ import { ERC20 } from './constants/erc20';
 import { consola } from 'consola';
 import { ethers } from 'ethers';
 import { callApprove } from './lib/call-approve';
-import { MockERC20__factory } from '@uniswap/uniswapx-sdk/dist/src/contracts';
+import { MockERC20__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { formatUnits } from 'ethers/lib/utils';
 
 const SUPPORT_OUTPUT_TOKENS = ['USDC', 'USDT'];
