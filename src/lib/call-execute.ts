@@ -1,55 +1,33 @@
 // lib/call-execute.ts
 
 import { ethers } from 'ethers';
-import { OpenDutchIntentV2 } from '../types/dutch-intent-v2';
 import { UNISWAP_REACTOR_ADDRESSES } from '../constants/uniswap-reactor-addresses';
 import { V2DutchOrderReactor__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { SignedOrderStruct } from '@banr1/uniswapx-sdk/dist/src/contracts/ExclusiveDutchOrderReactor';
-import { DutchOrderBuilder, NonceManager } from '@banr1/uniswapx-sdk';
-import { PERMIT2ADDRESSES } from '../constants/permit2addresses';
+import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
 import { consola } from 'consola';
+import { ChainId } from '../types/chain-id';
 
 export const buildAndSignIntent = async (
-  intent: OpenDutchIntentV2,
+  intent: CosignedV2DutchOrder,
   signer: ethers.Wallet,
-  provider: ethers.providers.JsonRpcProvider,
 ): Promise<SignedOrderStruct> => {
-  const chainId = intent.chainId;
-  const nonceMgr = new NonceManager(provider, chainId, PERMIT2ADDRESSES[chainId]);
-  const nonce = await nonceMgr.useNonce(intent.swapper);
-
-  const builder = new DutchOrderBuilder(chainId, UNISWAP_REACTOR_ADDRESSES[chainId], PERMIT2ADDRESSES[chainId]);
-
-  const order = builder
-    .deadline(intent.deadline)
-    .decayEndTime(intent.decayEndTime)
-    .decayStartTime(intent.decayStartTime)
-    .nonce(nonce)
-    .swapper(intent.swapper)
-    .input(intent.input)
-    .output(intent.outputs[0]!)
-    .build();
-
-  const { domain, types, values } = order.permitData();
+  const { domain, types, values } = intent.permitData();
   const sig = signer._signTypedData(domain, types, values);
 
-  const serializedOrder = order.serialize();
+  const serializedIntent = intent.serialize();
 
   return {
-    order: serializedOrder,
+    order: serializedIntent,
     sig,
   };
 };
 
-export const callExecute = async (
-  intent: OpenDutchIntentV2,
-  signer: ethers.Wallet,
-  provider: ethers.providers.JsonRpcProvider,
-) => {
-  const reactorContractAddress = UNISWAP_REACTOR_ADDRESSES[intent.chainId];
+export const callExecute = async (intent: CosignedV2DutchOrder, signer: ethers.Wallet, chainId: ChainId) => {
+  const reactorContractAddress = UNISWAP_REACTOR_ADDRESSES[chainId];
   const reactor = V2DutchOrderReactor__factory.connect(reactorContractAddress, signer);
 
-  const signedIntent = await buildAndSignIntent(intent, signer, provider);
+  const signedIntent = await buildAndSignIntent(intent, signer);
 
   try {
     const tx = await reactor.execute(signedIntent, { gasLimit: 600_000 });

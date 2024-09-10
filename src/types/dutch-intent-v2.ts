@@ -3,7 +3,7 @@
 import { CosignerData, DutchInput, DutchOutput, OrderType } from '@banr1/uniswapx-sdk';
 
 import { ChainId } from './chain-id';
-import { Address, IntentHash, TxHash } from './hash';
+import { Address, IntentHash } from './hash';
 
 export type OpenDutchIntentV2 = {
   hash: IntentHash;
@@ -31,7 +31,6 @@ export type RawOpenDutchIntentV2 = {
   encodedOrder: string;
   chainId: ChainId;
   nonce: number;
-  txHash?: TxHash;
   orderHash: IntentHash;
   swapper: Address;
   input: DutchInput;

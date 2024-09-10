@@ -1,7 +1,7 @@
 // main.ts
 
 import { OrderType } from '@banr1/uniswapx-sdk';
-import { fetchIntents } from './lib/fetch-intents';
+import { fetchIntent } from './lib/fetch-intents';
 import { FetchOrdersParams } from './types/fetch-orders-params';
 import { callExecute } from './lib/call-execute';
 import { ERC20 } from './constants/erc20';
@@ -54,16 +54,14 @@ const monitorIntents = async () => {
   );
 
   try {
-    const intents = await fetchIntents(params);
-    if (intents.length == 0 || intents[0] === undefined) {
+    const intent = await fetchIntent(params);
+    if (intent === undefined) {
       consola.info('No intents found 🍪');
       return;
     }
 
-    const intent = intents[0];
-
     // Check if the output token is USDC/USDT
-    const outputToken = intent.outputs[0]!;
+    const outputToken = intent.info.outputs[0]!;
     const outputTokenName = ERC20[chainId][outputToken.token]!.name;
     if (!SUPPORT_OUTPUT_TOKENS.includes(outputTokenName)) {
       consola.info('An intent found!✨ But output token is not supported but', outputTokenName);
@@ -82,13 +80,13 @@ const monitorIntents = async () => {
 
     // Approve the output token if it is not USDC/USDT
     if (!SUPPORT_OUTPUT_TOKENS.includes(outputTokenName)) {
-      const approveTxReceipt = await callApprove(intent, signer);
+      const approveTxReceipt = await callApprove(intent, signer, chainId);
       consola.success(outputTokenName, ' approved successfully!!🎉 Tx receipt:', approveTxReceipt);
     } else {
       consola.info('USDC/USDT already approved ✅');
     }
 
-    const executeTxReceipt = await callExecute(intent, signer, provider);
+    const executeTxReceipt = await callExecute(intent, signer, chainId);
     consola.success('intent executed successfully!!🎉 Tx receipt:', executeTxReceipt);
   } catch (error) {
     consola.error('An error occurred 🚨 in the monitorIntents function:', error);
