@@ -13,7 +13,7 @@ export const buildAndSignIntent = async (
   signer: ethers.Wallet,
 ): Promise<SignedOrderStruct> => {
   const { domain, types, values } = intent.permitData();
-  const sig = signer._signTypedData(domain, types, values);
+  const sig = await signer._signTypedData(domain, types, values);
 
   const serializedIntent = intent.serialize();
 
