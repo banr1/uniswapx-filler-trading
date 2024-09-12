@@ -60,12 +60,15 @@ const monitorIntents = async () => {
       return;
     }
     const { intent } = intentAndSignature;
+    const cosigner = intent.recoverCosigner();
 
     // Check if the output token is USDC/USDT
     const outputToken = intent.info.outputs[0]!;
     const outputTokenName = ERC20[chainId][outputToken.token]!.name;
     if (!SUPPORT_OUTPUT_TOKENS.includes(outputTokenName)) {
       consola.info('An intent found!✨ But output token is not supported but', outputTokenName);
+      consola.info('intent info:', intent);
+      consola.info('cosigner:', cosigner);
       return;
     }
 
@@ -75,9 +78,13 @@ const monitorIntents = async () => {
         outputToken.startAmount.toString(),
         ')',
       );
+      consola.info('intent info:', intent);
+      consola.info('cosigner:', cosigner);
       return;
     }
-    consola.info('An USDC/USDT intent found!!✨:', intent);
+    consola.info('An USDC/USDT intent found!!✨');
+    consola.info('intent info:', intent);
+    consola.info('cosigner:', cosigner);
 
     // Approve the output token if it is not USDC/USDT
     if (!SUPPORT_OUTPUT_TOKENS.includes(outputTokenName)) {
