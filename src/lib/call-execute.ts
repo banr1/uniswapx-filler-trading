@@ -3,7 +3,7 @@
 import { ethers } from 'ethers';
 import { UNISWAP_REACTOR_ADDRESSES } from '../constants/uniswap-reactor-addresses';
 import { V2DutchOrderReactor__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
-import { SignedOrderStruct } from '@banr1/uniswapx-sdk/dist/src/contracts/ExclusiveDutchOrderReactor';
+import { SignedOrderStruct } from '@banr1/uniswapx-sdk/dist/src/contracts/V2DutchOrderReactor';
 import { consola } from 'consola';
 import { ChainId } from '../types/chain-id';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
