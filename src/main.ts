@@ -54,11 +54,12 @@ const monitorIntents = async () => {
   );
 
   try {
-    const intent = await fetchIntent(params);
-    if (intent === undefined) {
+    const intentAndSignature = await fetchIntent(params);
+    if (intentAndSignature === undefined) {
       consola.info('No intents found 🍪');
       return;
     }
+    const { intent } = intentAndSignature;
 
     // Check if the output token is USDC/USDT
     const outputToken = intent.info.outputs[0]!;
@@ -86,7 +87,7 @@ const monitorIntents = async () => {
       consola.info('USDC/USDT already approved ✅');
     }
 
-    const executeTxReceipt = await callExecute(intent, signer, chainId);
+    const executeTxReceipt = await callExecute(intentAndSignature, signer, chainId);
     consola.success('intent executed successfully!!🎉 Tx receipt:', executeTxReceipt);
   } catch (error) {
     consola.error('An error occurred 🚨 in the monitorIntents function:', error);
