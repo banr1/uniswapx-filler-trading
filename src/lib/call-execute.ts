@@ -5,30 +5,14 @@ import { UNISWAP_REACTOR_ADDRESSES } from '../constants/uniswap-reactor-addresse
 import { V2DutchOrderReactor__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { SignedOrderStruct } from '@banr1/uniswapx-sdk/dist/src/contracts/V2DutchOrderReactor';
 import { consola } from 'consola';
-import { ChainId } from '../types/chain-id';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
-
-// export const buildAndSignIntent = async (
-//   intent: CosignedV2DutchOrder,
-//   signer: ethers.Wallet,
-// ): Promise<SignedOrderStruct> => {
-//   const { domain, types, values } = intent.permitData();
-//   const sig: BytesLike = await signer._signTypedData(domain, types, values);
-
-//   const serializedIntent: BytesLike = intent.serialize();
-
-//   return {
-//     order: serializedIntent,
-//     sig,
-//   };
-// };
+import { config } from '../config';
 
 export const callExecute = async (
   intentAndSignature: { intent: CosignedV2DutchOrder; signature: string },
   signer: ethers.Wallet,
-  chainId: ChainId,
 ) => {
-  const reactorContractAddress = UNISWAP_REACTOR_ADDRESSES[chainId];
+  const reactorContractAddress = UNISWAP_REACTOR_ADDRESSES[config.chainId];
   const reactor = V2DutchOrderReactor__factory.connect(reactorContractAddress, signer);
   const { intent, signature } = intentAndSignature;
   const signedIntent: SignedOrderStruct = {

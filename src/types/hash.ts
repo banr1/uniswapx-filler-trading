@@ -4,5 +4,4 @@ export type Hash = TxHash | IntentHash | Address;
 export type TxHash = string;
 export type IntentHash = string;
 export type Address = string;
-export type ContractAddress = Address;
-export type ShortHash = string;
+export type ContractAddress = string;

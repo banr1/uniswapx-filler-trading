@@ -7,8 +7,7 @@
     "build": "tsc",
     "dev": "nodemon src/main.ts",
     "start": "ts-node src/main.ts",
-    "load-env": "export $(grep -v '^#' .env | xargs)",
-    "generate-types": "typechain --target=ethers-v5 'abi/*.json'"
+    "load-env": "export $(grep -v '^#' .env | xargs)"
   },
   "keywords": [],
   "author": "",
@@ -22,7 +21,6 @@
     "eslint-plugin-unused-imports": "^4.1.3",
     "nodemon": "^3.1.4",
     "ts-node": "^10.9.2",
-    "typechain": "^8.3.2",
     "typescript": "^5.5.4"
   },
   "dependencies": {
