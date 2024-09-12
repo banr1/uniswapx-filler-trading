@@ -8,7 +8,9 @@ import { UNISWAPX_API_ENDPOINT } from '../constants/api-endpoint';
 import { PERMIT2ADDRESSES } from '../constants/permit2addresses';
 import consola from 'consola';
 
-export async function fetchIntent(params: FetchOrdersParams): Promise<CosignedV2DutchOrder | undefined> {
+export async function fetchIntent(
+  params: FetchOrdersParams,
+): Promise<{ intent: CosignedV2DutchOrder; signature: string } | undefined> {
   const chainId = params.chainId;
   const permit2Address = PERMIT2ADDRESSES[chainId];
 
@@ -24,5 +26,8 @@ export async function fetchIntent(params: FetchOrdersParams): Promise<CosignedV2
   }
   const intent = CosignedV2DutchOrder.parse(rawIntent.encodedOrder, chainId, permit2Address);
 
-  return intent;
+  return {
+    intent,
+    signature: rawIntent.signature,
+  };
 }
