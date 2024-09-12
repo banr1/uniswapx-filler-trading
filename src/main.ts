@@ -10,10 +10,14 @@ import { ethers } from 'ethers';
 import { callApprove } from './lib/call-approve';
 import { MockERC20__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { formatUnits } from 'ethers/lib/utils';
+import { IntentHash } from './types/hash';
 
 const SUPPORT_OUTPUT_TOKENS = ['USDC', 'USDT'];
 
 const monitorIntents = async () => {
+  let justFilledIntentHash: IntentHash | null = null;
+  let justSkippedIntentHash: IntentHash | null = null;
+
   if (!process.env.PRIVATE_KEY) {
     throw new Error('PRIVATE_KEY environment variable is not set');
   }
@@ -57,11 +61,21 @@ const monitorIntents = async () => {
     const intentAndSignature = await fetchIntent(params);
     if (intentAndSignature === undefined) {
       consola.info('No intents found 🍪');
+      justFilledIntentHash = null;
       return;
     }
     const { intent } = intentAndSignature;
     const cosigner = intent.recoverCosigner();
     const resolvedIntent = intent.resolve({ timestamp: Math.floor(Date.now() / 1000) });
+
+    if (justFilledIntentHash && justFilledIntentHash === intent.hash()) {
+      consola.info('This intent has already been executed 💫');
+      return;
+    }
+    if (justSkippedIntentHash && justSkippedIntentHash === intent.hash()) {
+      consola.info('This intent has already been skipped 💫');
+      return;
+    }
 
     // Check if the output token is USDC/USDT
     const outputToken = intent.info.outputs[0]!;
@@ -71,6 +85,7 @@ const monitorIntents = async () => {
       consola.info('intent info:', intent);
       consola.info('cosigner:', cosigner);
       consola.info('resolved intent:', resolvedIntent);
+      justSkippedIntentHash = intent.hash();
       return;
     }
 
@@ -83,6 +98,7 @@ const monitorIntents = async () => {
       consola.info('intent info:', intent);
       consola.info('cosigner:', cosigner);
       consola.info('resolved intent:', resolvedIntent);
+      justSkippedIntentHash = intent.hash();
       return;
     }
     consola.info('An USDC/USDT intent found!!✨');
@@ -99,6 +115,8 @@ const monitorIntents = async () => {
     }
 
     const executeTxReceipt = await callExecute(intentAndSignature, signer, chainId);
+    justFilledIntentHash = intent.hash();
+
     consola.success('intent executed successfully!!🎉 Tx receipt:', executeTxReceipt);
   } catch (error) {
     consola.error('An error occurred 🚨 in the monitorIntents function:', error);
