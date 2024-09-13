@@ -3,8 +3,8 @@
 import { ethers } from 'ethers';
 import { config } from '../config';
 import {
-  MockERC20,
-  MockERC20__factory,
+  MockERC20 as ERC20,
+  MockERC20__factory as ERC20__factory,
   V2DutchOrderReactor,
   V2DutchOrderReactor__factory,
 } from '@banr1/uniswapx-sdk/dist/src/contracts';
@@ -16,13 +16,13 @@ export class FillService {
   private filler: ethers.Wallet;
   private provider: ethers.providers.JsonRpcProvider;
   private reactor: V2DutchOrderReactor;
-  private outputToken: MockERC20;
+  private outputToken: ERC20;
 
   constructor() {
     this.provider = new ethers.providers.JsonRpcProvider(config.alchemyUrl);
     this.filler = new ethers.Wallet(config.privateKey, this.provider);
     this.reactor = V2DutchOrderReactor__factory.connect(UNISWAP_REACTOR_ADDRESSES[config.chainId], this.filler);
-    this.outputToken = MockERC20__factory.connect('0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', this.filler); // USDT
+    this.outputToken = ERC20__factory.connect('0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', this.filler); // USDT
   }
 
   async fillIntent({ intent, signature }: { intent: CosignedV2DutchOrder; signature: string }) {

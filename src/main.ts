@@ -12,7 +12,7 @@ async function monitorIntent(): Promise<void> {
     if (intentAndSignature === null) return;
 
     const evaluation = await evaluationService.evaluateIntent(intentAndSignature.intent);
-    if (evaluation === false) return;
+    if (evaluation === null) return;
 
     await fillService.fillIntent(intentAndSignature);
   } catch (error) {
