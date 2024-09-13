@@ -4,10 +4,10 @@ import { MockERC20 as ERC20, MockERC20__factory as ERC20__factory } from '@banr1
 import { Address } from '../types/hash';
 import { ethers } from 'ethers';
 import { config } from '../config';
-import consola from 'consola';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
 import { nowTimestamp } from '../utils';
 import { formatUnits } from 'ethers/lib/utils';
+import { logger } from '../logger';
 
 export class EvaluationService {
   private filler: Address;
@@ -27,19 +27,14 @@ export class EvaluationService {
     const resolvedAmount = intent.resolve({ timestamp: nowTimestamp() }).outputs[0]!.amount;
     const balance = await this.outputToken.balanceOf(this.filler);
     if (balance.lt(resolvedAmount)) {
-      consola.info(
-        'An',
-        tokenSymbol,
-        'intent found!✨ But balance is not enough (resolved amount:',
-        formatUnits(resolvedAmount, tokenDecimals),
-        'balance:',
-        formatUnits(balance, tokenDecimals),
-        ')',
+      logger.info(
+        `An ${tokenSymbol} intent found!✨ But balance is not enough (resolved amount: ${formatUnits(resolvedAmount, tokenDecimals)} ${tokenSymbol} balance: ${formatUnits(balance, tokenDecimals)} ${tokenSymbol})`,
       );
       return null;
     }
 
-    consola.info('An suitable intent found!✨');
+    logger.info('An suitable intent found!✨');
+    logger.info('Intent:', intent);
     return;
   }
 }

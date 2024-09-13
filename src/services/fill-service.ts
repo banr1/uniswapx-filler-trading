@@ -10,7 +10,7 @@ import {
 } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { UNISWAP_REACTOR_ADDRESSES } from '../constants/uniswap-reactor-addresses';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
-import consola from 'consola';
+import { logger } from '../logger';
 
 export class FillService {
   private filler: ethers.Wallet;
@@ -34,7 +34,7 @@ export class FillService {
     const gasLimit = 600_000;
     const ethBalance = await this.provider.getBalance(this.filler.address);
     if (ethBalance.lt(gasLimit)) {
-      consola.error('Insufficient ETH balance for gas fee ☃️');
+      logger.error(`Insufficient ETH balance for gas fee ☃️: ${ethBalance}`);
     }
 
     try {
@@ -42,7 +42,7 @@ export class FillService {
 
       const tx = await this.reactor.execute(signedIntent, { gasLimit });
       const txReceipt = await tx.wait();
-      consola.info('txReceipt:', txReceipt);
+      logger.info(`txReceipt: ${txReceipt}`);
     } catch (error) {
       throw error;
     }

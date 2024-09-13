@@ -5,13 +5,14 @@ import { FetchOrdersParams } from '../types/fetch-orders-params';
 import axios from 'axios';
 import { RawOpenDutchIntentV2 } from '../types/raw-dutch-intent-v2';
 import { config } from '../config';
-import consola from 'consola';
 import { PERMIT2ADDRESSES } from '../constants/permit2addresses';
 import { ChainId } from '../types/chain-id';
 import { MockERC20 as ERC20, MockERC20__factory as ERC20__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { ethers } from 'ethers';
 import { Address } from '../types/hash';
 import { formatUnits } from 'ethers/lib/utils';
+import { nowTimestamp } from '../utils';
+import { logger } from '../logger';
 
 export class FetchService {
   private baseUrl: string;
@@ -46,13 +47,13 @@ export class FetchService {
     try {
       const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(`${this.baseUrl}/v2/orders`, { params });
       if (!response.data.orders.length) {
-        consola.info('No intents found 🍪 (', formatUnits(tokenBalance, tokenDecimals), tokenSymbol, ')');
+        logger.info(`No intents found 🍪 (${formatUnits(tokenBalance, tokenDecimals)} ${tokenSymbol})`);
         return null;
       }
 
       const rawIntent = response.data.orders[0];
       if (!rawIntent || rawIntent.type !== OrderType.Dutch_V2 || rawIntent.orderStatus !== 'open') {
-        consola.info('No intents found 🍪 (', formatUnits(tokenBalance, tokenDecimals), tokenSymbol, ')');
+        logger.info(`No intents found 🍪 (${formatUnits(tokenBalance, tokenDecimals)} ${tokenSymbol})`);
         return null;
       }
 
@@ -60,7 +61,7 @@ export class FetchService {
       const inputToken = ERC20__factory.connect(rawIntent.input.token, this.provider);
       const inputSymbol = await inputToken.symbol();
       if (!supportedInputTokenSymbols.includes(inputSymbol)) {
-        consola.info('An intent found!✨ But input token is not supported:', inputSymbol);
+        logger.info(`An intent found!✨ But input token is not supported: ${inputSymbol}`);
         return null;
       }
 
@@ -69,7 +70,13 @@ export class FetchService {
       const outputSymbol = await token.symbol();
 
       if (outputSymbol !== supportedOutputTokenSymbol) {
-        consola.info('An intent found!✨ But output token is not supported:', outputSymbol);
+        logger.info(`An intent found!✨ But output token is not supported: ${outputSymbol}`);
+        return null;
+      }
+
+      const endTime = rawIntent.cosignerData.decayEndTime;
+      if (endTime < nowTimestamp()) {
+        logger.info(`An intent found!✨ But it is expired: ${new Date(endTime * 1000)}`);
         return null;
       }
 
@@ -80,7 +87,7 @@ export class FetchService {
         signature: rawIntent.signature,
       };
     } catch (error) {
-      consola.error('Error fetching orders:', error);
+      logger.error(`Error🚨 fetching orders: ${error}`);
       throw error;
     }
   }
