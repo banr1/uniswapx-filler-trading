@@ -8,22 +8,24 @@ import { config } from '../config';
 import consola from 'consola';
 import { PERMIT2ADDRESSES } from '../constants/permit2addresses';
 import { ChainId } from '../types/chain-id';
-import { MockERC20, MockERC20__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
+import { MockERC20 as ERC20, MockERC20__factory as ERC20__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { ethers } from 'ethers';
 import { Address } from '../types/hash';
+import { formatUnits } from 'ethers/lib/utils';
 
 export class FetchService {
   private baseUrl: string;
   private chainId: ChainId;
   private filler: Address;
-  private outputToken: MockERC20;
+  private provider: ethers.providers.JsonRpcProvider;
+  private outputToken: ERC20;
 
   constructor() {
     this.baseUrl = 'https://api.uniswap.org';
     this.chainId = config.chainId;
     this.filler = new ethers.Wallet(config.privateKey).address;
-    const provider = new ethers.providers.JsonRpcProvider(config.alchemyUrl);
-    this.outputToken = MockERC20__factory.connect('0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', provider); // USDT
+    this.provider = new ethers.providers.JsonRpcProvider(config.alchemyUrl);
+    this.outputToken = ERC20__factory.connect('0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', this.provider); // USDT
   }
 
   async fetchIntent(): Promise<{ intent: CosignedV2DutchOrder; signature: string } | null> {
@@ -37,20 +39,37 @@ export class FetchService {
       orderType: OrderType.Dutch_V2,
       includeV2: true,
     };
+    const tokenBalance = await this.outputToken.balanceOf(this.filler);
+    const tokenSymbol = await this.outputToken.symbol();
+    const tokenDecimals = await this.outputToken.decimals();
 
     try {
       const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(`${this.baseUrl}/v2/orders`, { params });
       if (!response.data.orders.length) {
-        const tokenBalance = await this.outputToken.balanceOf(this.filler);
-        const tokenSymbol = await this.outputToken.symbol();
-        const tokenDecimals = await this.outputToken.decimals();
-        consola.info('No intents found 🍪 (', ethers.utils.formatUnits(tokenBalance, tokenDecimals), tokenSymbol, ')');
+        consola.info('No intents found 🍪 (', formatUnits(tokenBalance, tokenDecimals), tokenSymbol, ')');
         return null;
       }
 
       const rawIntent = response.data.orders[0];
       if (!rawIntent || rawIntent.type !== OrderType.Dutch_V2 || rawIntent.orderStatus !== 'open') {
-        consola.info('No intents found 🍪');
+        consola.info('No intents found 🍪 (', formatUnits(tokenBalance, tokenDecimals), tokenSymbol, ')');
+        return null;
+      }
+
+      const supportedInputTokenSymbols = ['WETH', 'USDC', 'DAI', 'WBTC'];
+      const inputToken = ERC20__factory.connect(rawIntent.input.token, this.provider);
+      const inputSymbol = await inputToken.symbol();
+      if (!supportedInputTokenSymbols.includes(inputSymbol)) {
+        consola.info('An intent found!✨ But input token is not supported:', inputSymbol);
+        return null;
+      }
+
+      const supportedOutputTokenSymbol = 'USDT';
+      const token = ERC20__factory.connect(rawIntent.outputs[0]!.token, this.provider);
+      const outputSymbol = await token.symbol();
+
+      if (outputSymbol !== supportedOutputTokenSymbol) {
+        consola.info('An intent found!✨ But output token is not supported:', outputSymbol);
         return null;
       }
 
