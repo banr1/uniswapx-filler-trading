@@ -13,28 +13,19 @@ export class EvaluationService {
 
   constructor() {
     this.filler = new ethers.Wallet(config.privateKey).address;
-    const provider = new ethers.providers.JsonRpcProvider(config.alchemyApiKey);
+    const provider = new ethers.providers.JsonRpcProvider(config.alchemyUrl);
     this.outputToken = MockERC20__factory.connect('0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', provider); // USDT
   }
 
-  async evaluate(intent: CosignedV2DutchOrder): Promise<boolean> {
+  async evaluateIntent(intent: CosignedV2DutchOrder): Promise<boolean> {
     const outputToken = intent.info.outputs[0]!;
     if (outputToken.token !== this.outputToken.address) {
-      consola.info('An intent found!✨ But output token is not USDT but', this.outputToken.name);
+      consola.info('An intent found!✨ But output token is not USDT but', this.outputToken.name());
       return false;
     }
     const outputTokenBalance = await this.outputToken.balanceOf(this.filler);
     if (outputTokenBalance.lt(outputToken.startAmount)) {
       consola.info('An USDT intent found!✨ But balance is not enough (', outputTokenBalance.toString(), ')');
-      return false;
-    }
-
-    if (outputToken.startAmount.gt(250_000_000)) {
-      consola.info(
-        'An USDT intent found!✨ But output amount is greater than 250 (',
-        outputToken.startAmount.toString(),
-        ')',
-      );
       return false;
     }
 

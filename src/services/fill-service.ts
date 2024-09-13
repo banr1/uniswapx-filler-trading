@@ -19,13 +19,13 @@ export class FillService {
   private outputToken: MockERC20;
 
   constructor() {
-    this.filler = new ethers.Wallet(config.privateKey);
-    this.provider = new ethers.providers.JsonRpcProvider(config.alchemyApiKey);
+    this.provider = new ethers.providers.JsonRpcProvider(config.alchemyUrl);
+    this.filler = new ethers.Wallet(config.privateKey, this.provider);
     this.reactor = V2DutchOrderReactor__factory.connect(UNISWAP_REACTOR_ADDRESSES[config.chainId], this.filler);
     this.outputToken = MockERC20__factory.connect('0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', this.filler); // USDT
   }
 
-  async execute({ intent, signature }: { intent: CosignedV2DutchOrder; signature: string }) {
+  async fillIntent({ intent, signature }: { intent: CosignedV2DutchOrder; signature: string }) {
     const signedIntent = {
       order: intent.serialize(),
       sig: signature,

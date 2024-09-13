@@ -10,10 +10,10 @@ export const config: {
   interval: number;
   chainId: ChainId;
   privateKey: string;
-  alchemyApiKey: string;
+  alchemyUrl: string;
 } = {
-  interval: 3500,
+  interval: 3200,
   chainId: 42161,
   privateKey: process.env.PRIVATE_KEY,
-  alchemyApiKey: process.env.ALCHEMY_API_KEY,
+  alchemyUrl: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
 };
