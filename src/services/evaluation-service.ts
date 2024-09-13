@@ -2,21 +2,21 @@
 
 import { MockERC20 as ERC20, MockERC20__factory as ERC20__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { Address } from '../types/hash';
-import { ethers } from 'ethers';
 import { config } from '../config';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
 import { nowTimestamp } from '../utils';
 import { formatUnits } from 'ethers/lib/utils';
 import { logger } from '../logger';
+import { providers, Wallet } from 'ethers';
 
 export class EvaluationService {
   private filler: Address;
-  private provider: ethers.providers.JsonRpcProvider;
+  private provider: providers.JsonRpcProvider;
   private outputToken: ERC20;
 
   constructor() {
-    this.filler = new ethers.Wallet(config.privateKey).address;
-    this.provider = new ethers.providers.JsonRpcProvider(config.alchemyUrl);
+    this.filler = new Wallet(config.privateKey).address;
+    this.provider = new providers.JsonRpcProvider(config.alchemyUrl);
     this.outputToken = ERC20__factory.connect('0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', this.provider); // USDT
   }
 
@@ -34,7 +34,7 @@ export class EvaluationService {
     }
 
     logger.info('An suitable intent found!✨');
-    logger.info('Intent:', intent);
+    logger.info(`Intent: ${intent}`);
     return;
   }
 }

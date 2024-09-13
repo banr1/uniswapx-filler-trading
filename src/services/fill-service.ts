@@ -1,6 +1,5 @@
 // services/reactor-contract-service.ts
 
-import { ethers } from 'ethers';
 import { config } from '../config';
 import {
   MockERC20 as ERC20,
@@ -11,16 +10,17 @@ import {
 import { UNISWAP_REACTOR_ADDRESSES } from '../constants/uniswap-reactor-addresses';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
 import { logger } from '../logger';
+import { constants, providers, Wallet } from 'ethers';
 
 export class FillService {
-  private filler: ethers.Wallet;
-  private provider: ethers.providers.JsonRpcProvider;
+  private filler: Wallet;
+  private provider: providers.JsonRpcProvider;
   private reactor: V2DutchOrderReactor;
   private outputToken: ERC20;
 
   constructor() {
-    this.provider = new ethers.providers.JsonRpcProvider(config.alchemyUrl);
-    this.filler = new ethers.Wallet(config.privateKey, this.provider);
+    this.provider = new providers.JsonRpcProvider(config.alchemyUrl);
+    this.filler = new Wallet(config.privateKey, this.provider);
     this.reactor = V2DutchOrderReactor__factory.connect(UNISWAP_REACTOR_ADDRESSES[config.chainId], this.filler);
     this.outputToken = ERC20__factory.connect('0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', this.filler); // USDT
   }
@@ -38,7 +38,7 @@ export class FillService {
     }
 
     try {
-      await this.outputToken.approve(UNISWAP_REACTOR_ADDRESSES[config.chainId], ethers.constants.MaxUint256);
+      await this.outputToken.approve(UNISWAP_REACTOR_ADDRESSES[config.chainId], constants.MaxUint256);
 
       const tx = await this.reactor.execute(signedIntent, { gasLimit });
       const txReceipt = await tx.wait();

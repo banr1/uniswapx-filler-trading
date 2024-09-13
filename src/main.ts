@@ -1,10 +1,8 @@
 // main.ts
 
 import { config } from './config';
-import { fetchService } from './services/fetch-service';
-import { fillService } from './services/fill-service';
-import { evaluationService } from './services/evaluation-service';
 import { logger } from './logger';
+import { evaluationService, fetchService, fillService } from './services';
 
 async function monitorIntent(): Promise<void> {
   try {
@@ -16,7 +14,7 @@ async function monitorIntent(): Promise<void> {
 
     await fillService.fillIntent(intentAndSignature);
   } catch (error) {
-    logger.error('An error occurred 🚨 in the main function:', error);
+    logger.error(`An error occurred 🚨 in the main function: ${error}`);
   }
 }
 
@@ -27,5 +25,5 @@ async function main(): Promise<void> {
 }
 
 main().catch(error => {
-  logger.error('An error occurred 🚨 in the main function:', error);
+  logger.error(`An error occurred 🚨 in the main function: ${error}`);
 });
