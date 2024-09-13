@@ -12,7 +12,7 @@ export const config: {
   privateKey: string;
   alchemyUrl: string;
 } = {
-  interval: 3200,
+  interval: 400,
   chainId: 42161,
   privateKey: process.env.PRIVATE_KEY,
   alchemyUrl: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
