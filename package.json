@@ -5,9 +5,8 @@
   "main": "main.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon src/main.ts",
-    "start": "ts-node src/main.ts",
-    "load-env": "export $(grep -v '^#' .env | xargs)"
+    "dev": "dotenv -e .env -- nodemon src/main.ts",
+    "start": "ts-node src/main.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +15,7 @@
     "@types/node": "^22.5.0",
     "@typescript-eslint/eslint-plugin": "^8.2.0",
     "@typescript-eslint/parser": "^8.2.0",
+    "dotenv-cli": "^7.4.2",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unused-imports": "^4.1.3",
