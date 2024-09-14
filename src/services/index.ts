@@ -1,5 +1,6 @@
-import { fillService } from './fill-service';
-import { evaluationService } from './evaluation-service';
-import { fetchService } from './fetch-service';
+import { FillService } from './fill-service';
+import { EvaluationService } from './evaluation-service';
+import { FetchService } from './fetch-service';
+import { preparationService } from './preparation-service';
 
-export { fillService, evaluationService, fetchService };
+export { FillService, EvaluationService, FetchService, preparationService };
