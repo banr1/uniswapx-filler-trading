@@ -5,32 +5,37 @@ import { FetchOrdersParams } from '../types/fetch-orders-params';
 import axios from 'axios';
 import { RawOpenDutchIntentV2 } from '../types/raw-dutch-intent-v2';
 import { config } from '../config';
-import consola from 'consola';
 import { PERMIT2ADDRESSES } from '../constants/permit2addresses';
-import { ChainId } from '../types/chain-id';
 import { MockERC20 as ERC20, MockERC20__factory as ERC20__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
-import { ethers } from 'ethers';
-import { Address } from '../types/hash';
+import { providers, Wallet } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
+import { nowTimestamp } from '../utils';
+import { logger } from '../logger';
 
 export class FetchService {
-  private baseUrl: string;
-  private chainId: ChainId;
-  private filler: Address;
-  private provider: ethers.providers.JsonRpcProvider;
+  private filler: Wallet;
+  private provider: providers.JsonRpcProvider;
   private outputToken: ERC20;
+  private baseUrl: string;
 
-  constructor() {
+  constructor({
+    filler,
+    provider,
+    outputToken,
+  }: {
+    filler: Wallet;
+    provider: providers.JsonRpcProvider;
+    outputToken: ERC20;
+  }) {
+    this.filler = filler;
+    this.provider = provider;
+    this.outputToken = outputToken;
     this.baseUrl = 'https://api.uniswap.org';
-    this.chainId = config.chainId;
-    this.filler = new ethers.Wallet(config.privateKey).address;
-    this.provider = new ethers.providers.JsonRpcProvider(config.alchemyUrl);
-    this.outputToken = ERC20__factory.connect('0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', this.provider); // USDT
   }
 
   async fetchIntent(): Promise<{ intent: CosignedV2DutchOrder; signature: string } | null> {
     const params: FetchOrdersParams = {
-      chainId: this.chainId,
+      chainId: config.chainId,
       limit: 2,
       orderStatus: 'open',
       sortKey: 'createdAt',
@@ -39,20 +44,20 @@ export class FetchService {
       orderType: OrderType.Dutch_V2,
       includeV2: true,
     };
-    const tokenBalance = await this.outputToken.balanceOf(this.filler);
+    const tokenBalance = await this.outputToken.balanceOf(this.filler.address);
     const tokenSymbol = await this.outputToken.symbol();
     const tokenDecimals = await this.outputToken.decimals();
 
     try {
       const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(`${this.baseUrl}/v2/orders`, { params });
       if (!response.data.orders.length) {
-        consola.info('No intents found 🍪 (', formatUnits(tokenBalance, tokenDecimals), tokenSymbol, ')');
+        logger.info(`No intents found 🍪 (${formatUnits(tokenBalance, tokenDecimals)} ${tokenSymbol})`);
         return null;
       }
 
       const rawIntent = response.data.orders[0];
       if (!rawIntent || rawIntent.type !== OrderType.Dutch_V2 || rawIntent.orderStatus !== 'open') {
-        consola.info('No intents found 🍪 (', formatUnits(tokenBalance, tokenDecimals), tokenSymbol, ')');
+        logger.info(`No intents found 🍪 (${formatUnits(tokenBalance, tokenDecimals)} ${tokenSymbol})`);
         return null;
       }
 
@@ -60,7 +65,7 @@ export class FetchService {
       const inputToken = ERC20__factory.connect(rawIntent.input.token, this.provider);
       const inputSymbol = await inputToken.symbol();
       if (!supportedInputTokenSymbols.includes(inputSymbol)) {
-        consola.info('An intent found!✨ But input token is not supported:', inputSymbol);
+        logger.info(`An intent found!✨ But input token is not supported: ${inputSymbol}`);
         return null;
       }
 
@@ -69,7 +74,13 @@ export class FetchService {
       const outputSymbol = await token.symbol();
 
       if (outputSymbol !== supportedOutputTokenSymbol) {
-        consola.info('An intent found!✨ But output token is not supported:', outputSymbol);
+        logger.info(`An intent found!✨ But output token is not supported: ${outputSymbol}`);
+        return null;
+      }
+
+      const endTime = rawIntent.cosignerData.decayEndTime;
+      if (endTime < nowTimestamp()) {
+        logger.info(`An intent found!✨ But it is expired: ${new Date(endTime * 1000)}`);
         return null;
       }
 
@@ -80,14 +91,12 @@ export class FetchService {
         signature: rawIntent.signature,
       };
     } catch (error) {
-      consola.error('Error fetching orders:', error);
+      logger.error(`Error🚨 fetching orders: ${error}`);
       throw error;
     }
   }
 
   private parseIntent(rawIntent: RawOpenDutchIntentV2): CosignedV2DutchOrder {
-    return CosignedV2DutchOrder.parse(rawIntent.encodedOrder, this.chainId, PERMIT2ADDRESSES[this.chainId]);
+    return CosignedV2DutchOrder.parse(rawIntent.encodedOrder, config.chainId, PERMIT2ADDRESSES[config.chainId]);
   }
 }
-
-export const fetchService = new FetchService();
