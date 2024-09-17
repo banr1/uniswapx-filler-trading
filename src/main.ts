@@ -24,19 +24,30 @@ async function monitorIntent(identificationService: IdentificationService, fillS
 
 async function main(): Promise<void> {
   // Prepare the environment
-  const { chainId, alchemyUrl, privateKey, interval } = config;
+  const { chainId, alchemyUrl, privateKey, interval, supportedInputTokenAddresses, supportedOutputTokenAddresses } =
+    config;
   const reactorAddress = UNISWAP_REACTOR_ADDRESSES[chainId];
 
   const provider = new providers.JsonRpcProvider(alchemyUrl);
   const filler = new Wallet(privateKey, provider);
-  const outputToken = ERC20__factory.connect('0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', filler); // USDT
   const reactor = V2DutchOrderReactor__factory.connect(reactorAddress, filler);
-  await outputToken.approve(reactorAddress, constants.MaxUint256);
 
+  const inputTokens = await Promise.all(
+    supportedInputTokenAddresses.map(async address => ERC20__factory.connect(address, filler)),
+  );
+
+  const outputTokens = [];
+  for (const address of supportedOutputTokenAddresses) {
+    const outputToken = ERC20__factory.connect(address, filler);
+    await outputToken.approve(reactorAddress, constants.MaxUint256);
+    const outputTokenSymbol = await outputToken.symbol();
+    logger.info(`Approved ${outputTokenSymbol} for UniswapX Reactor`);
+    outputTokens.push(outputToken);
+  }
   logger.info('Preparation completed 🌱');
 
   // Initialize the services
-  const identificationService = new IdentificationService({ filler, provider, outputToken });
+  const identificationService = new IdentificationService({ filler, provider, inputTokens, outputTokens });
   const fillService = new FillService({ reactor });
 
   logger.info(`Starting the main function 🚀 with ${interval / 1000}s interval`);
