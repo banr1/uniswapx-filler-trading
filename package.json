@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@banr1/uniswapx-sdk": "2.1.0",
+    "@uniswap/v3-sdk": "^3.13.1",
     "axios": "^1.7.4",
     "ethers": "^5.7.2",
     "winston": "^3.14.2"

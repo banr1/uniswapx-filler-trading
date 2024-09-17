@@ -4,39 +4,39 @@ import { CosignedV2DutchOrder, OrderType } from '@banr1/uniswapx-sdk';
 import { FetchOrdersParams } from '../types/fetch-orders-params';
 import axios from 'axios';
 import { RawOpenDutchIntentV2 } from '../types/raw-dutch-intent-v2';
-import { config } from '../config';
-import { PERMIT2ADDRESSES } from '../constants/permit2addresses';
-import { MockERC20 as ERC20, MockERC20__factory as ERC20__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
-import { providers, Wallet } from 'ethers';
+import { MockERC20 as ERC20 } from '@banr1/uniswapx-sdk/dist/src/contracts';
+import { Wallet } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
-import { nowTimestamp } from '../utils';
+import { getSupportedToken, nowTimestamp } from '../utils';
 import { logger } from '../logger';
+import { PERMIT2ADDRESS } from '../constants/permit2addresses';
+import { ChainId } from '../types/chain-id';
 
 interface IdentificationServiceConstructorArgs {
-  filler: Wallet;
-  provider: providers.JsonRpcProvider;
+  wallet: Wallet;
   inputTokens: ERC20[];
   outputTokens: ERC20[];
+  chainId: ChainId;
 }
 
 export class IdentificationService {
-  private filler: Wallet;
-  private provider: providers.JsonRpcProvider;
+  private wallet: Wallet;
   private inputTokens: ERC20[];
   private outputTokens: ERC20[];
+  private chainId: ChainId;
   private apiBaseUrl = 'https://api.uniswap.org';
 
-  constructor({ filler, provider, inputTokens, outputTokens }: IdentificationServiceConstructorArgs) {
-    this.filler = filler;
-    this.provider = provider;
+  constructor({ wallet, inputTokens, outputTokens, chainId }: IdentificationServiceConstructorArgs) {
+    this.wallet = wallet;
     this.inputTokens = inputTokens;
     this.outputTokens = outputTokens;
+    this.chainId = chainId;
   }
 
   async identifyIntent(): Promise<{ intent: CosignedV2DutchOrder; signature: string } | null> {
     const params: FetchOrdersParams = {
-      chainId: config.chainId,
-      limit: 2,
+      chainId: this.chainId,
+      limit: 1,
       orderStatus: 'open',
       sortKey: 'createdAt',
       desc: true,
@@ -58,17 +58,14 @@ export class IdentificationService {
         return null;
       }
 
-      const intentInputToken = ERC20__factory.connect(rawIntent.input.token, this.provider);
-      if (!this.inputTokens.includes(intentInputToken)) {
-        const intentInputTokenSymbol = await intentInputToken.symbol();
-        logger.info(`An intent found!✨ But input token is not supported: ${intentInputTokenSymbol}`);
+      const intentInputToken = getSupportedToken(rawIntent.input, this.inputTokens);
+      if (!intentInputToken) {
+        logger.info(`An intent found!✨ But input token is not supported: ${rawIntent.input.token}`);
         return null;
       }
-
-      const intentOutputToken = ERC20__factory.connect(rawIntent.outputs[0]!.token, this.provider);
-      if (!this.outputTokens.includes(intentOutputToken)) {
-        const intentOutputTokenSymbol = await intentOutputToken.symbol();
-        logger.info(`An intent found!✨ But output token is not supported: ${intentOutputTokenSymbol}`);
+      const intentOutputToken = getSupportedToken(rawIntent.outputs[0]!, this.outputTokens);
+      if (!intentOutputToken) {
+        logger.info(`An intent found!✨ But output token is not supported: ${rawIntent.outputs[0]!.token}`);
         return null;
       }
 
@@ -81,7 +78,7 @@ export class IdentificationService {
       const intent = this.parseIntent(rawIntent);
 
       const resolvedAmount = intent.resolve({ timestamp: nowTimestamp() }).outputs[0]!.amount;
-      const outputTokenBalance = await intentOutputToken.balanceOf(this.filler.address);
+      const outputTokenBalance = await intentOutputToken.balanceOf(this.wallet.address);
       if (outputTokenBalance.lt(resolvedAmount)) {
         const tokenSymbol = await intentOutputToken.symbol();
         const tokenDecimals = await intentOutputToken.decimals();
@@ -105,6 +102,6 @@ export class IdentificationService {
   }
 
   private parseIntent(rawIntent: RawOpenDutchIntentV2): CosignedV2DutchOrder {
-    return CosignedV2DutchOrder.parse(rawIntent.encodedOrder, config.chainId, PERMIT2ADDRESSES[config.chainId]);
+    return CosignedV2DutchOrder.parse(rawIntent.encodedOrder, this.chainId, PERMIT2ADDRESS);
   }
 }
