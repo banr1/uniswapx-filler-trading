@@ -1,4 +1,4 @@
-// services/api-service.ts
+// services/identification-service.ts
 
 import { CosignedV2DutchOrder, OrderType } from '@banr1/uniswapx-sdk';
 import { FetchOrdersParams } from '../types/fetch-orders-params';
@@ -12,11 +12,11 @@ import { formatUnits } from 'ethers/lib/utils';
 import { nowTimestamp } from '../utils';
 import { logger } from '../logger';
 
-export class FetchService {
+export class IdentificationService {
   private filler: Wallet;
   private provider: providers.JsonRpcProvider;
   private outputToken: ERC20;
-  private baseUrl: string;
+  private baseUrl = 'https://api.uniswap.org';
 
   constructor({
     filler,
@@ -30,10 +30,9 @@ export class FetchService {
     this.filler = filler;
     this.provider = provider;
     this.outputToken = outputToken;
-    this.baseUrl = 'https://api.uniswap.org';
   }
 
-  async fetchIntent(): Promise<{ intent: CosignedV2DutchOrder; signature: string } | null> {
+  async identifyIntent(): Promise<{ intent: CosignedV2DutchOrder; signature: string } | null> {
     const params: FetchOrdersParams = {
       chainId: config.chainId,
       limit: 2,
@@ -47,6 +46,8 @@ export class FetchService {
     const tokenBalance = await this.outputToken.balanceOf(this.filler.address);
     const tokenSymbol = await this.outputToken.symbol();
     const tokenDecimals = await this.outputToken.decimals();
+    const supportedInputTokenSymbols = ['WETH', 'USDC', 'DAI', 'WBTC'];
+    const supportedOutputTokenSymbol = 'USDT';
 
     try {
       const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(`${this.baseUrl}/v2/orders`, { params });
@@ -61,7 +62,6 @@ export class FetchService {
         return null;
       }
 
-      const supportedInputTokenSymbols = ['WETH', 'USDC', 'DAI', 'WBTC'];
       const inputToken = ERC20__factory.connect(rawIntent.input.token, this.provider);
       const inputSymbol = await inputToken.symbol();
       if (!supportedInputTokenSymbols.includes(inputSymbol)) {
@@ -69,7 +69,6 @@ export class FetchService {
         return null;
       }
 
-      const supportedOutputTokenSymbol = 'USDT';
       const token = ERC20__factory.connect(rawIntent.outputs[0]!.token, this.provider);
       const outputSymbol = await token.symbol();
 
@@ -85,6 +84,18 @@ export class FetchService {
       }
 
       const intent = this.parseIntent(rawIntent);
+
+      const resolvedAmount = intent.resolve({ timestamp: nowTimestamp() }).outputs[0]!.amount;
+      const balance = await this.outputToken.balanceOf(this.filler.address);
+      if (balance.lt(resolvedAmount)) {
+        logger.info(
+          `An ${tokenSymbol} intent found!✨ But balance is not enough (resolved amount: ${formatUnits(resolvedAmount, tokenDecimals)} ${tokenSymbol} balance: ${formatUnits(balance, tokenDecimals)} ${tokenSymbol})`,
+        );
+        return null;
+      }
+
+      logger.info('An suitable intent found!✨');
+      logger.info(`Intent: ${intent}`);
 
       return {
         intent,
