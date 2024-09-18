@@ -2,49 +2,55 @@
 
 import { config } from './config';
 import { logger } from './logger';
-import { preparationService } from './services';
-import { EvaluationService } from './services/evaluation-service';
-import { FetchService } from './services/fetch-service';
+import {
+  MockERC20__factory as ERC20__factory,
+  V2DutchOrderReactor__factory,
+} from '@banr1/uniswapx-sdk/dist/src/contracts';
+import { constants, providers, Wallet } from 'ethers';
+import { IdentificationService } from './services/identification-service';
 import { FillService } from './services/fill-service';
+import { REACTOR_ADDRESS } from './constants';
 
-async function monitorIntent({
-  fetchService,
-  evaluationService,
-  fillService,
-}: {
-  fetchService: FetchService;
-  evaluationService: EvaluationService;
-  fillService: FillService;
-}): Promise<void> {
-  try {
-    // Step 1: Fetch the intent
-    // Retrieve the intent and signature from the API and filter out the non targeted intents
-    const intentAndSignature = await fetchService.fetchIntent();
-    if (intentAndSignature === null) return;
+async function monitorIntent(identificationService: IdentificationService, fillService: FillService): Promise<void> {
+  // Step 1: Identify the intent
+  // Identify the intent from the UniswapX API
+  const intent = await identificationService.identifyIntent();
+  if (intent === null) return;
 
-    // Step 2: Evaluate the intent
-    // Check if the intent meets certain conditions
-    const evaluation = await evaluationService.evaluateIntent(intentAndSignature.intent);
-    if (evaluation === null) return;
-
-    // Step 3: Fill the intent
-    // Fill the intent with the signature
-    await fillService.fillIntent(intentAndSignature);
-  } catch (error) {
-    logger.error(`An error occurred 🚨 in the main function: ${error}`);
-  }
+  // Step 2: Fill the intent
+  // Fill the intent with the signature
+  await fillService.fillIntent(intent);
 }
 
 async function main(): Promise<void> {
-  const preparation = await preparationService.initialize();
-  const { provider, filler, outputToken, reactor } = preparation;
-  const fetchService = new FetchService({ filler, provider, outputToken });
-  const evaluationService = new EvaluationService({ filler, outputToken });
-  const fillService = new FillService({ reactor });
+  // Prepare the environment
+  const { chainId, alchemyUrl, privateKey, interval, supportedInputTokenAddresses, supportedOutputTokenAddresses } =
+    config;
 
-  const { interval } = config;
+  const provider = new providers.JsonRpcProvider(alchemyUrl);
+  const wallet = new Wallet(privateKey, provider);
+  const reactor = V2DutchOrderReactor__factory.connect(REACTOR_ADDRESS, wallet);
+
+  const inputTokens = await Promise.all(
+    supportedInputTokenAddresses.map(async address => ERC20__factory.connect(address, wallet)),
+  );
+
+  const outputTokens = [];
+  for (const address of supportedOutputTokenAddresses) {
+    const outputToken = ERC20__factory.connect(address, wallet);
+    await outputToken.approve(REACTOR_ADDRESS, constants.MaxUint256);
+    const outputTokenSymbol = await outputToken.symbol();
+    logger.info(`Approved ${outputTokenSymbol} for UniswapX Reactor`);
+    outputTokens.push(outputToken);
+  }
+  logger.info('Preparation completed 🌱');
+
+  // Initialize the services
+  const identificationService = new IdentificationService({ wallet, inputTokens, outputTokens, chainId });
+  const fillService = new FillService({ wallet, reactor, inputTokens, outputTokens });
+
   logger.info(`Starting the main function 🚀 with ${interval / 1000}s interval`);
-  setInterval(monitorIntent, interval, { fetchService, evaluationService, fillService });
+  setInterval(monitorIntent, interval, identificationService, fillService);
 }
 
 main().catch(error => {
