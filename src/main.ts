@@ -9,7 +9,7 @@ import {
 import { constants, providers, Wallet } from 'ethers';
 import { IdentificationService } from './services/identification-service';
 import { FillService } from './services/fill-service';
-import { REACTOR_ADDRESS } from './constants/uniswap-reactor-addresses';
+import { REACTOR_ADDRESS } from './constants/reactor-addresses';
 
 async function monitorIntent(identificationService: IdentificationService, fillService: FillService): Promise<void> {
   // Step 1: Identify the intent

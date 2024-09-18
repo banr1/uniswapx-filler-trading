@@ -11,6 +11,9 @@ importers:
       '@banr1/uniswapx-sdk':
         specifier: 2.1.0
         version: 2.1.0
+      '@uniswap/sdk-core':
+        specifier: ^5.4.0
+        version: 5.4.0
       '@uniswap/v3-sdk':
         specifier: ^3.13.1
         version: 3.13.1(hardhat@2.22.10(ts-node@10.9.2(@types/node@22.5.0)(typescript@5.5.4))(typescript@5.5.4))
@@ -20,6 +23,9 @@ importers:
       ethers:
         specifier: ^5.7.2
         version: 5.7.2
+      jsbi:
+        specifier: ^4.3.0
+        version: 4.3.0
       winston:
         specifier: ^3.14.2
         version: 3.14.2
@@ -1167,6 +1173,9 @@ packages:
 
   jsbi@3.2.5:
     resolution: {integrity: sha512-aBE4n43IPvjaddScbvWRA2YlTzKEynHzu7MqOyTipdHucf/VxS63ViCjxYRg86M8Rxwbt/GfzHl1kKERkt45fQ==}
+
+  jsbi@4.3.0:
+    resolution: {integrity: sha512-SnZNcinB4RIcnEyZqFPdGPVgrg2AcnykiBy0sHVJQKHYeaLUvi3Exj+iaPpLnFVkDPZIV4U0yvgC9/R4uEAZ9g==}
 
   json-buffer@3.0.1:
     resolution: {integrity: sha512-4bV5BfR2mqfQTJm+V5tPPdf+ZpuhiIvTuAB5g8kcrXOZpTT/QwwVRWBywX1ozr6lEuPdbHxwaJlm9G6mI2sfSQ==}
@@ -3204,6 +3213,8 @@ snapshots:
       argparse: 2.0.1
 
   jsbi@3.2.5: {}
+
+  jsbi@4.3.0: {}
 
   json-buffer@3.0.1: {}
 

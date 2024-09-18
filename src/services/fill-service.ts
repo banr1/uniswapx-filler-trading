@@ -5,7 +5,13 @@ import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
 import { MockERC20 as ERC20 } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { logger } from '../logger';
 import { getSupportedToken } from '../utils';
-import { ContractReceipt, Wallet } from 'ethers';
+import { ContractReceipt, ethers, utils, Wallet } from 'ethers';
+import { computePoolAddress, FeeAmount, Pool, Route, SwapRouter, Trade } from '@uniswap/v3-sdk';
+import { CurrencyAmount, Percent, Token, TradeType } from '@uniswap/sdk-core';
+import { config } from '../config';
+import IUniswapV3PoolABI from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json';
+import JSBI from 'jsbi';
+import { POOL_FACTORY_ADDRESS, SWAP_ROUTER_ADDRESS } from '../constants';
 
 interface FillServiceConstructorArgs {
   wallet: Wallet;
@@ -16,12 +22,14 @@ interface FillServiceConstructorArgs {
 
 export class FillService {
   private wallet: Wallet;
+  private provider: ethers.providers.Provider;
   private reactor: V2DutchOrderReactor;
   private inputTokens: ERC20[];
   private outputTokens: ERC20[];
 
   constructor({ wallet, reactor, inputTokens, outputTokens }: FillServiceConstructorArgs) {
     this.wallet = wallet;
+    this.provider = wallet.provider;
     this.reactor = reactor;
     this.inputTokens = inputTokens;
     this.outputTokens = outputTokens;
@@ -72,6 +80,10 @@ export class FillService {
     const receivedInputTokenAmount = Number(inputTokenTransferEvent.data);
 
     const inputToken = getSupportedToken(intent.info.input, this.inputTokens);
+    if (inputToken === null) {
+      logger.error('Failed to find the input token 🚨');
+      return;
+    }
     const outputToken = getSupportedToken(intent.info.outputs[0]!, this.outputTokens);
   }
 }

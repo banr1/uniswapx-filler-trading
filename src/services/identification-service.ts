@@ -9,7 +9,7 @@ import { Wallet } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 import { getSupportedToken, nowTimestamp } from '../utils';
 import { logger } from '../logger';
-import { PERMIT2ADDRESS } from '../constants/permit2addresses';
+import { PERMIT2_ADDRESS } from '../constants/permit2-addresses';
 import { ChainId } from '../types/chain-id';
 
 interface IdentificationServiceConstructorArgs {
@@ -102,6 +102,6 @@ export class IdentificationService {
   }
 
   private parseIntent(rawIntent: RawOpenDutchIntentV2): CosignedV2DutchOrder {
-    return CosignedV2DutchOrder.parse(rawIntent.encodedOrder, this.chainId, PERMIT2ADDRESS);
+    return CosignedV2DutchOrder.parse(rawIntent.encodedOrder, this.chainId, PERMIT2_ADDRESS);
   }
 }
