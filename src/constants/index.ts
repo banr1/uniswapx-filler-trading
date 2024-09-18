@@ -22,7 +22,13 @@ const REACTOR_ADDRESSES: Record<ChainId, ContractAddress> = {
   42161: '0x1bd1aAdc9E230626C44a139d7E70d842749351eb',
 };
 
+const QUOTER_CONTRACT_ADDRESSES: Record<ChainId, ContractAddress> = {
+  1: '0x61fFE014bA17989E743c5F6cB21bF9697530B21e',
+  42161: '0x61fFE014bA17989E743c5F6cB21bF9697530B21e',
+};
+
 export const PERMIT2_ADDRESS = PERMIT2_ADDRESSES[config.chainId];
 export const POOL_FACTORY_ADDRESS = POOL_FACTORY_ADDRESSES[config.chainId]; // v3
 export const SWAP_ROUTER_ADDRESS = SWAP_ROUTER_ADDRESSES[config.chainId]; // v3
+export const QUOTER_CONTRACT_ADDRESS = QUOTER_CONTRACT_ADDRESSES[config.chainId]; // v3
 export const REACTOR_ADDRESS = REACTOR_ADDRESSES[config.chainId]; // UniswapX

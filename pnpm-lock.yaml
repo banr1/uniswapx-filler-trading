@@ -11,6 +11,12 @@ importers:
       '@banr1/uniswapx-sdk':
         specifier: 2.1.0
         version: 2.1.0
+      '@ethersproject/abi':
+        specifier: ^5.7.0
+        version: 5.7.0
+      '@ethersproject/providers':
+        specifier: ^5.7.2
+        version: 5.7.2
       '@uniswap/sdk-core':
         specifier: ^5.4.0
         version: 5.4.0
@@ -24,8 +30,8 @@ importers:
         specifier: ^5.7.2
         version: 5.7.2
       jsbi:
-        specifier: ^4.3.0
-        version: 4.3.0
+        specifier: 3.1.4
+        version: 3.1.4
       winston:
         specifier: ^3.14.2
         version: 3.14.2
@@ -1220,11 +1226,8 @@ packages:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
     hasBin: true
 
-  jsbi@3.2.5:
-    resolution: {integrity: sha512-aBE4n43IPvjaddScbvWRA2YlTzKEynHzu7MqOyTipdHucf/VxS63ViCjxYRg86M8Rxwbt/GfzHl1kKERkt45fQ==}
-
-  jsbi@4.3.0:
-    resolution: {integrity: sha512-SnZNcinB4RIcnEyZqFPdGPVgrg2AcnykiBy0sHVJQKHYeaLUvi3Exj+iaPpLnFVkDPZIV4U0yvgC9/R4uEAZ9g==}
+  jsbi@3.1.4:
+    resolution: {integrity: sha512-52QRRFSsi9impURE8ZUbzAMCLjPm4THO7H2fcuIvaaeFTbSysvkodbQQXIVsNgq/ypDbq6dJiuGKL0vZ/i9hUg==}
 
   json-buffer@3.0.1:
     resolution: {integrity: sha512-4bV5BfR2mqfQTJm+V5tPPdf+ZpuhiIvTuAB5g8kcrXOZpTT/QwwVRWBywX1ozr6lEuPdbHxwaJlm9G6mI2sfSQ==}
@@ -2493,7 +2496,7 @@ snapshots:
       '@ethersproject/address': 5.7.0
       big.js: 5.2.2
       decimal.js-light: 2.5.1
-      jsbi: 3.2.5
+      jsbi: 3.1.4
       tiny-invariant: 1.3.3
       toformat: 2.0.0
 
@@ -2505,7 +2508,7 @@ snapshots:
       '@ethersproject/strings': 5.7.0
       big.js: 5.2.2
       decimal.js-light: 2.5.1
-      jsbi: 3.2.5
+      jsbi: 3.1.4
       tiny-invariant: 1.3.3
       toformat: 2.0.0
 
@@ -3357,9 +3360,7 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
-  jsbi@3.2.5: {}
-
-  jsbi@4.3.0: {}
+  jsbi@3.1.4: {}
 
   json-buffer@3.0.1: {}
 
