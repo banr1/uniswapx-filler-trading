@@ -9,8 +9,8 @@ import { Wallet } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 import { getSupportedToken, nowTimestamp } from '../utils';
 import { logger } from '../logger';
-import { PERMIT2_ADDRESS } from '../constants/permit2-addresses';
 import { ChainId } from '../types/chain-id';
+import { PERMIT2_ADDRESS } from '../constants';
 
 interface IdentificationServiceConstructorArgs {
   wallet: Wallet;

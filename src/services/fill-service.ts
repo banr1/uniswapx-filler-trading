@@ -9,9 +9,9 @@ import { ContractReceipt, ethers, utils, Wallet } from 'ethers';
 import { computePoolAddress, FeeAmount, Pool, Route, SwapRouter, Trade } from '@uniswap/v3-sdk';
 import { CurrencyAmount, Percent, Token, TradeType } from '@uniswap/sdk-core';
 import { config } from '../config';
-import IUniswapV3PoolABI from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json';
 import JSBI from 'jsbi';
 import { POOL_FACTORY_ADDRESS, SWAP_ROUTER_ADDRESS } from '../constants';
+import { UniswapV3Pool__factory } from '../types/typechain';
 
 interface FillServiceConstructorArgs {
   wallet: Wallet;
