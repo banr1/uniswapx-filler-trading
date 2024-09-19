@@ -26,14 +26,22 @@ export class IdentificationService {
   private chainId: ChainId;
   private apiBaseUrl = 'https://api.uniswap.org';
 
-  constructor({ wallet, inputTokens, outputTokens, chainId }: IdentificationServiceConstructorArgs) {
+  constructor({
+    wallet,
+    inputTokens,
+    outputTokens,
+    chainId,
+  }: IdentificationServiceConstructorArgs) {
     this.wallet = wallet;
     this.inputTokens = inputTokens;
     this.outputTokens = outputTokens;
     this.chainId = chainId;
   }
 
-  async identifyIntent(): Promise<{ intent: CosignedV2DutchOrder; signature: string } | null> {
+  async identifyIntent(): Promise<{
+    intent: CosignedV2DutchOrder;
+    signature: string;
+  } | null> {
     const params: FetchOrdersParams = {
       chainId: this.chainId,
       limit: 1,
@@ -46,7 +54,10 @@ export class IdentificationService {
     };
 
     try {
-      const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(`${this.apiBaseUrl}/v2/orders`, { params });
+      const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(
+        `${this.apiBaseUrl}/v2/orders`,
+        { params },
+      );
       if (!response.data.orders.length) {
         // log only when seconds is 0
         if (new Date().getSeconds() === 0) {
@@ -56,32 +67,51 @@ export class IdentificationService {
       }
 
       const rawIntent = response.data.orders[0];
-      if (!rawIntent || rawIntent.type !== OrderType.Dutch_V2 || rawIntent.orderStatus !== 'open') {
+      if (
+        !rawIntent ||
+        rawIntent.type !== OrderType.Dutch_V2 ||
+        rawIntent.orderStatus !== 'open'
+      ) {
         logger.info(`An intent found!✨ But it is not a Dutch V2 intent`);
         return null;
       }
 
-      const intentInputToken = getSupportedToken(rawIntent.input, this.inputTokens);
+      const intentInputToken = getSupportedToken(
+        rawIntent.input,
+        this.inputTokens,
+      );
       if (!intentInputToken) {
-        logger.info(`An intent found!✨ But input token is not supported: ${rawIntent.input.token}`);
+        logger.info(
+          `An intent found!✨ But input token is not supported: ${rawIntent.input.token}`,
+        );
         return null;
       }
-      const intentOutputToken = getSupportedToken(rawIntent.outputs[0]!, this.outputTokens);
+      const intentOutputToken = getSupportedToken(
+        rawIntent.outputs[0]!,
+        this.outputTokens,
+      );
       if (!intentOutputToken) {
-        logger.info(`An intent found!✨ But output token is not supported: ${rawIntent.outputs[0]!.token}`);
+        logger.info(
+          `An intent found!✨ But output token is not supported: ${rawIntent.outputs[0]!.token}`,
+        );
         return null;
       }
 
       const endTime = rawIntent.cosignerData.decayEndTime;
       if (endTime < nowTimestamp()) {
-        logger.info(`An intent found!✨ But it is expired: ${new Date(endTime * 1000)}`);
+        logger.info(
+          `An intent found!✨ But it is expired: ${new Date(endTime * 1000)}`,
+        );
         return null;
       }
 
       const intent = this.parseIntent(rawIntent);
 
-      const resolvedAmount = intent.resolve({ timestamp: nowTimestamp() }).outputs[0]!.amount;
-      const outputTokenBalance = await intentOutputToken.balanceOf(this.wallet.address);
+      const resolvedAmount = intent.resolve({ timestamp: nowTimestamp() })
+        .outputs[0]!.amount;
+      const outputTokenBalance = await intentOutputToken.balanceOf(
+        this.wallet.address,
+      );
       if (outputTokenBalance.lt(resolvedAmount)) {
         const tokenSymbol = await intentOutputToken.symbol();
         const tokenDecimals = await intentOutputToken.decimals();
@@ -105,6 +135,10 @@ export class IdentificationService {
   }
 
   private parseIntent(rawIntent: RawOpenDutchIntentV2): CosignedV2DutchOrder {
-    return CosignedV2DutchOrder.parse(rawIntent.encodedOrder, this.chainId, PERMIT2_ADDRESS);
+    return CosignedV2DutchOrder.parse(
+      rawIntent.encodedOrder,
+      this.chainId,
+      PERMIT2_ADDRESS,
+    );
   }
 }

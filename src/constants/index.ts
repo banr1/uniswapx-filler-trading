@@ -30,5 +30,6 @@ const QUOTER_CONTRACT_ADDRESSES: Record<ChainId, ContractAddress> = {
 export const PERMIT2_ADDRESS = PERMIT2_ADDRESSES[config.chainId];
 export const POOL_FACTORY_ADDRESS = POOL_FACTORY_ADDRESSES[config.chainId]; // v3
 export const SWAP_ROUTER_ADDRESS = SWAP_ROUTER_ADDRESSES[config.chainId]; // v3
-export const QUOTER_CONTRACT_ADDRESS = QUOTER_CONTRACT_ADDRESSES[config.chainId]; // v3
+export const QUOTER_CONTRACT_ADDRESS =
+  QUOTER_CONTRACT_ADDRESSES[config.chainId]; // v3
 export const REACTOR_ADDRESS = REACTOR_ADDRESSES[config.chainId]; // UniswapX

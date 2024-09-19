@@ -7,8 +7,15 @@ export function nowTimestamp() {
   return Math.floor(Date.now() / 1000);
 }
 
-export function getSupportedToken(intentToken: DutchInput | DutchOutput, supportedTokens: ERC20[]): ERC20 | null {
-  return supportedTokens.find(supportedToken => supportedToken.address === intentToken.token) || null;
+export function getSupportedToken(
+  intentToken: DutchInput | DutchOutput,
+  supportedTokens: ERC20[],
+): ERC20 | null {
+  return (
+    supportedTokens.find(
+      supportedToken => supportedToken.address === intentToken.token,
+    ) || null
+  );
 }
 
 export async function sleep(ms: number): Promise<void> {

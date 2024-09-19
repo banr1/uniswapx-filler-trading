@@ -7,7 +7,7 @@
     "build": "tsc",
     "dev": "dotenv -e .env -- nodemon src/main.ts",
     "start": "ts-node src/main.ts",
-    "format": "prettier --write src/**/*.ts",
+    "format": "prettier --write src/*.ts src/**/*.ts",
     "type-generate": "typechain --target ethers-v5 --out-dir src/types/typechain ./node_modules/@uniswap/v3-core/artifacts/**/*.json"
   },
   "keywords": [],
