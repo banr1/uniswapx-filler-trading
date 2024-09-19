@@ -10,6 +10,7 @@ import { constants, providers, Wallet } from 'ethers';
 import { IdentificationService } from './services/identification-service';
 import { FillService } from './services/fill-service';
 import { REACTOR_ADDRESS } from './constants';
+import { sleep } from './utils';
 
 async function monitorIntent(identificationService: IdentificationService, fillService: FillService): Promise<void> {
   // Step 1: Identify the intent
@@ -50,7 +51,14 @@ async function main(): Promise<void> {
   const fillService = new FillService({ wallet, reactor, inputTokens, outputTokens });
 
   logger.info(`Starting the main function 🚀 with ${interval / 1000}s interval`);
-  setInterval(monitorIntent, interval, identificationService, fillService);
+
+  while (true) {
+    // const startTime = performance.now();
+    await monitorIntent(identificationService, fillService);
+    // const endTime = performance.now();
+    // logger.info(`Execution time: ${Math.floor(endTime - startTime) / 1000}s`);
+    await sleep(interval);
+  }
 }
 
 main().catch(error => {
