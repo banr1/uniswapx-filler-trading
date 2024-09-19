@@ -48,13 +48,16 @@ export class IdentificationService {
     try {
       const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(`${this.apiBaseUrl}/v2/orders`, { params });
       if (!response.data.orders.length) {
-        logger.info(`No intents found 🍪`);
+        // log only when seconds is 0
+        if (new Date().getSeconds() === 0) {
+          logger.info(`No intents found 🍪`);
+        }
         return null;
       }
 
       const rawIntent = response.data.orders[0];
       if (!rawIntent || rawIntent.type !== OrderType.Dutch_V2 || rawIntent.orderStatus !== 'open') {
-        logger.info(`No intents found 🍪`);
+        logger.info(`An intent found!✨ But it is not a Dutch V2 intent`);
         return null;
       }
 

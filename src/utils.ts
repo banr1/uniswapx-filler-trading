@@ -10,3 +10,7 @@ export function nowTimestamp() {
 export function getSupportedToken(intentToken: DutchInput | DutchOutput, supportedTokens: ERC20[]): ERC20 | null {
   return supportedTokens.find(supportedToken => supportedToken.address === intentToken.token) || null;
 }
+
+export async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

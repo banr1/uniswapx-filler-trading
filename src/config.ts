@@ -17,7 +17,7 @@ type Config = {
 };
 
 export const config: Config = {
-  interval: 400, // 400ms
+  interval: 200, // 200ms
   chainId: 42161, // Arbitrum
   privateKey: process.env.PRIVATE_KEY,
   alchemyUrl: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
