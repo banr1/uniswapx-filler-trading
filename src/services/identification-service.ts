@@ -10,20 +10,20 @@ import { getSupportedToken, nowTimestamp } from '../utils';
 import { logger } from '../logger';
 import { ChainId } from '../types/chain-id';
 import { PERMIT2_ADDRESS } from '../constants';
-import { Erc20, Erc20__factory } from '../types/typechain';
+import { ERC20, ERC20__factory } from '../types/typechain';
 import { IntentWithSignature } from '../types/intent-with-signature';
 
 interface IdentificationServiceConstructorArgs {
   wallet: Wallet;
-  inputTokens: Erc20[];
-  outputTokens: Erc20[];
+  inputTokens: ERC20[];
+  outputTokens: ERC20[];
   chainId: ChainId;
 }
 
 export class IdentificationService {
   private wallet: Wallet;
-  private inputTokens: Erc20[];
-  private outputTokens: Erc20[];
+  private inputTokens: ERC20[];
+  private outputTokens: ERC20[];
   private chainId: ChainId;
   private apiBaseUrl = 'https://api.uniswap.org';
 
@@ -66,7 +66,7 @@ export class IdentificationService {
       `${this.apiBaseUrl}/v2/orders`,
       { params },
     );
-    if (!response.data.orders.length) {
+    if (!response.data.orders.length || !response.data.orders[0]) {
       // log only when seconds is 0
       if (new Date().getSeconds() === 0) {
         logger.info(`No intents found 🍪`);
@@ -76,56 +76,10 @@ export class IdentificationService {
 
     const rawIntent = response.data.orders[0];
     if (
-      !rawIntent ||
       rawIntent.type !== OrderType.Dutch_V2 ||
       rawIntent.orderStatus !== 'open'
     ) {
       logger.info(`An intent found!✨ But it is not a Dutch V2 intent`);
-      return null;
-    }
-
-    const intentInputToken = getSupportedToken(
-      rawIntent.input,
-      this.inputTokens,
-    );
-    if (!intentInputToken) {
-      const intentInputTokenSymbol = await Erc20__factory.connect(
-        rawIntent.input.token,
-        this.wallet.provider,
-      ).symbol();
-      logger.info(
-        `An intent found!✨ But input token is not supported: ${intentInputTokenSymbol}`,
-      );
-      return null;
-    }
-    const intentOutputToken = getSupportedToken(
-      rawIntent.outputs[0]!,
-      this.outputTokens,
-    );
-    if (!intentOutputToken) {
-      const intentOutputTokenSymbol = await Erc20__factory.connect(
-        rawIntent.outputs[0]!.token,
-        this.wallet.provider,
-      ).symbol();
-      logger.info(
-        `An intent found!✨ But output token is not supported: ${intentOutputTokenSymbol}`,
-      );
-      return null;
-    }
-
-    const startTime = rawIntent.cosignerData.decayStartTime;
-    if (startTime > nowTimestamp()) {
-      logger.info(
-        `An intent found!✨ But it is not started yet: ${new Date(startTime * 1000)}`,
-      );
-      return null;
-    }
-
-    const endTime = rawIntent.cosignerData.decayEndTime;
-    if (endTime < nowTimestamp()) {
-      logger.info(
-        `An intent found!✨ But it is expired: ${new Date(endTime * 1000)}`,
-      );
       return null;
     }
 
@@ -134,6 +88,51 @@ export class IdentificationService {
       this.chainId,
       PERMIT2_ADDRESS,
     );
+    const intentInputToken = getSupportedToken(
+      intent.info.input,
+      this.inputTokens,
+    );
+    if (!intentInputToken) {
+      const intentInputTokenSymbol = await ERC20__factory.connect(
+        intent.info.input.token,
+        this.wallet.provider,
+      ).symbol();
+      logger.info(
+        `An intent found!✨ But input token is not supported: ${intentInputTokenSymbol}`,
+      );
+      return null;
+    }
+    const intentOutputToken = getSupportedToken(
+      intent.info.outputs[0]!,
+      this.outputTokens,
+    );
+    if (!intentOutputToken) {
+      const intentOutputTokenSymbol = await ERC20__factory.connect(
+        intent.info.outputs[0]!.token,
+        this.wallet.provider,
+      ).symbol();
+      logger.info(
+        `An intent found!✨ But output token is not supported: ${intentOutputTokenSymbol}`,
+      );
+      return null;
+    }
+
+    const startTime = intent.info.cosignerData.decayStartTime;
+    if (startTime > nowTimestamp()) {
+      logger.info(
+        `An intent found!✨ But it is not started yet: ${new Date(startTime * 1000)}`,
+      );
+      return null;
+    }
+
+    const endTime = intent.info.cosignerData.decayEndTime;
+    const deadline = intent.info.deadline;
+    if (endTime < nowTimestamp() || deadline < nowTimestamp()) {
+      logger.info(
+        `An intent found!✨ But it is expired: ${new Date(endTime * 1000)}`,
+      );
+      return null;
+    }
 
     const resolvedAmount = intent.resolve({ timestamp: nowTimestamp() })
       .outputs[0]!.amount;

@@ -16,22 +16,22 @@ import {
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core';
 import { config } from '../config';
 import { POOL_FACTORY_ADDRESS, SWAP_ROUTER_ADDRESS } from '../constants';
-import { Erc20, UniswapV3Pool__factory } from '../types/typechain';
+import { ERC20, UniswapV3Pool__factory } from '../types/typechain';
 import { IntentWithSignature } from '../types/intent-with-signature';
 
 interface FillServiceConstructorArgs {
   wallet: Wallet;
   reactor: V2DutchOrderReactor;
-  inputTokens: Erc20[];
-  outputTokens: Erc20[];
+  inputTokens: ERC20[];
+  outputTokens: ERC20[];
 }
 
 export class FillService {
   private wallet: Wallet;
   private provider: ethers.providers.Provider;
   private reactor: V2DutchOrderReactor;
-  private inputTokens: Erc20[];
-  private outputTokens: Erc20[];
+  private inputTokens: ERC20[];
+  private outputTokens: ERC20[];
 
   constructor({
     wallet,
@@ -182,22 +182,4 @@ export class FillService {
     );
     logger.info(`receipt: ${receipt}`);
   }
-
-  // private async getOutputQuote(route: Route<Token, Token>, tokenIn: Token, amountIn: number): Promise<Result> {
-  //   const { calldata } = await SwapQuoter.quoteCallParameters(
-  //     route,
-  //     CurrencyAmount.fromRawAmount(tokenIn, utils.formatUnits(amountIn, tokenIn.decimals)),
-  //     TradeType.EXACT_INPUT,
-  //     {
-  //       useQuoterV2: true,
-  //     },
-  //   );
-
-  //   const quoteCallReturnData = await this.provider.call({
-  //     to: QUOTER_CONTRACT_ADDRESS,
-  //     data: calldata,
-  //   });
-
-  //   return utils.defaultAbiCoder.decode(['uint256'], quoteCallReturnData);
-  // }
 }

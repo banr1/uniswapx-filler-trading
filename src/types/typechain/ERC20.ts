@@ -24,9 +24,9 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
-} from "../common";
+} from "./common";
 
-export interface Erc20Interface extends utils.Interface {
+export interface ERC20Interface extends utils.Interface {
   functions: {
     "name()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
@@ -126,12 +126,12 @@ export type TransferEvent = TypedEvent<
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
-export interface Erc20 extends BaseContract {
+export interface ERC20 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: Erc20Interface;
+  interface: ERC20Interface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
