@@ -12,8 +12,8 @@ interface Config {
   chainId: ChainId;
   privateKey: string;
   alchemyUrl: string;
-  supportedInputTokenAddresses: ContractAddress[];
-  supportedOutputTokenAddresses: ContractAddress[];
+  targetInputTokenAddresses: ContractAddress[];
+  targetOutputTokenAddresses: ContractAddress[];
 }
 
 export const config: Config = {
@@ -21,7 +21,7 @@ export const config: Config = {
   chainId: 42161, // Arbitrum
   privateKey: process.env.PRIVATE_KEY,
   alchemyUrl: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
-  supportedInputTokenAddresses: [
+  targetInputTokenAddresses: [
     '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // USDC
     '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // WETH
     '0x912CE59144191C1204E64559FE8253a0e49E6548', // ARB
@@ -32,7 +32,7 @@ export const config: Config = {
     '0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a', // GMX
     '0x6985884C4392D348587B19cb9eAAf157F13271cd', // ZRO
   ],
-  supportedOutputTokenAddresses: [
+  targetOutputTokenAddresses: [
     '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', // USDT
   ],
 };

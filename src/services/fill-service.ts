@@ -3,7 +3,7 @@
 import { V2DutchOrderReactor } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
 import { logger } from '../logger';
-import { getSupportedToken } from '../utils';
+import { getTargetToken } from '../utils';
 import { BigNumber, ContractReceipt, ethers, utils, Wallet } from 'ethers';
 import {
   computePoolAddress,
@@ -100,15 +100,12 @@ export class FillService {
     }
     const receivedInputTokenAmount = Number(inputTokenTransferEvent.data);
 
-    const inputTokenErc20 = getSupportedToken(
-      intent.info.input,
-      this.inputTokens,
-    );
+    const inputTokenErc20 = getTargetToken(intent.info.input, this.inputTokens);
     if (inputTokenErc20 === null) {
       logger.error('Failed to find the input token 🚨');
       return;
     }
-    const outputTokenErc20 = getSupportedToken(
+    const outputTokenErc20 = getTargetToken(
       intent.info.outputs[0]!,
       this.outputTokens,
     );

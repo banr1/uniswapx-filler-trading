@@ -6,7 +6,7 @@ import axios from 'axios';
 import { RawOpenDutchIntentV2 } from '../types/raw-dutch-intent-v2';
 import { Wallet } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
-import { getSupportedToken, nowTimestamp } from '../utils';
+import { getTargetToken, nowTimestamp } from '../utils';
 import { logger } from '../logger';
 import { ChainId } from '../types/chain-id';
 import { PERMIT2_ADDRESS } from '../constants';
@@ -88,7 +88,7 @@ export class IdentificationService {
       this.chainId,
       PERMIT2_ADDRESS,
     );
-    const intentInputToken = getSupportedToken(
+    const intentInputToken = getTargetToken(
       intent.info.input,
       this.inputTokens,
     );
@@ -98,11 +98,11 @@ export class IdentificationService {
         this.wallet.provider,
       ).symbol();
       logger.info(
-        `An intent found!✨ But input token is not supported: ${intentInputTokenSymbol}`,
+        `An intent found!✨ But input token is not targeted: ${intentInputTokenSymbol}`,
       );
       return null;
     }
-    const intentOutputToken = getSupportedToken(
+    const intentOutputToken = getTargetToken(
       intent.info.outputs[0]!,
       this.outputTokens,
     );
@@ -112,7 +112,7 @@ export class IdentificationService {
         this.wallet.provider,
       ).symbol();
       logger.info(
-        `An intent found!✨ But output token is not supported: ${intentOutputTokenSymbol}`,
+        `An intent found!✨ But output token is not targeted: ${intentOutputTokenSymbol}`,
       );
       return null;
     }
@@ -120,7 +120,7 @@ export class IdentificationService {
     const startTime = intent.info.cosignerData.decayStartTime;
     if (startTime > nowTimestamp()) {
       logger.info(
-        `An intent found!✨ But it is not started yet: ${new Date(startTime * 1000)}`,
+        `An intent found!✨ But it is not started yet: ${new Date(startTime * 1000).toTimeString()}`,
       );
       return null;
     }
@@ -129,7 +129,7 @@ export class IdentificationService {
     const deadline = intent.info.deadline;
     if (endTime < nowTimestamp() || deadline < nowTimestamp()) {
       logger.info(
-        `An intent found!✨ But it is expired: ${new Date(endTime * 1000)}`,
+        `An intent found!✨ But it is expired: ${new Date(endTime * 1000).toTimeString()}`,
       );
       return null;
     }
@@ -149,7 +149,7 @@ export class IdentificationService {
     }
 
     logger.info('An suitable intent found!✨');
-    logger.info(`Intent: ${intent}`);
+    logger.info(`Intent: ${JSON.stringify(intent)}`);
 
     return {
       intent,

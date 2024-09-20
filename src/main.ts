@@ -31,8 +31,8 @@ async function main(): Promise<void> {
     alchemyUrl,
     privateKey,
     interval,
-    supportedInputTokenAddresses,
-    supportedOutputTokenAddresses,
+    targetInputTokenAddresses,
+    targetOutputTokenAddresses,
   } = config;
 
   const provider = new providers.JsonRpcProvider(alchemyUrl);
@@ -40,17 +40,17 @@ async function main(): Promise<void> {
   const reactor = V2DutchOrderReactor__factory.connect(REACTOR_ADDRESS, wallet);
 
   const inputTokens = await Promise.all(
-    supportedInputTokenAddresses.map(async address =>
+    targetInputTokenAddresses.map(async address =>
       ERC20__factory.connect(address, wallet),
     ),
   );
 
   const outputTokens = [];
-  for (const address of supportedOutputTokenAddresses) {
+  for (const address of targetOutputTokenAddresses) {
     const outputToken = ERC20__factory.connect(address, wallet);
     await outputToken.approve(REACTOR_ADDRESS, constants.MaxUint256);
     const outputTokenSymbol = await outputToken.symbol();
-    logger.info(`Approved ${outputTokenSymbol}📝 for UniswapX Reactor`);
+    logger.info(`Approved ${outputTokenSymbol}✏️ for UniswapX Reactor`);
     outputTokens.push(outputToken);
   }
   logger.info('Preparation completed 🌱');
