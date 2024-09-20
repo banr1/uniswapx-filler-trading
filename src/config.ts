@@ -7,14 +7,14 @@ if (!process.env.PRIVATE_KEY) {
   throw new Error('ALCHEMY_API_KEY environment variable is not set');
 }
 
-type Config = {
+interface Config {
   interval: number;
   chainId: ChainId;
   privateKey: string;
   alchemyUrl: string;
   supportedInputTokenAddresses: ContractAddress[];
   supportedOutputTokenAddresses: ContractAddress[];
-};
+}
 
 export const config: Config = {
   interval: 200, // 200ms
@@ -30,6 +30,7 @@ export const config: Config = {
     '0x2C650dAb03A59332e2E0C0C4A7F726913e5028C1', // TAP
     '0x0c880f6761F1af8d9Aa9C466984b80DAb9a8c9e8', // PENDLE
     '0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a', // GMX
+    '0x6985884C4392D348587B19cb9eAAf157F13271cd', // ZRO
   ],
   supportedOutputTokenAddresses: [
     '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', // USDT

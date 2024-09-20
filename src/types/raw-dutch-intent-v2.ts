@@ -1,13 +1,18 @@
 // types/raw-dutch-intent-v2.ts
 
-import { CosignerData, DutchInput, DutchOutput, OrderType } from '@banr1/uniswapx-sdk';
+import {
+  CosignerData,
+  DutchInput,
+  DutchOutput,
+  OrderType,
+} from '@banr1/uniswapx-sdk';
 
 import { ChainId } from './chain-id';
 import { Address, IntentHash } from './hash';
 
 // There's a example of a raw Dutch intent in the reference directory:
 // reference/raw-dutch-intent-v2.json
-export type RawOpenDutchIntentV2 = {
+export interface RawOpenDutchIntentV2 {
   type: OrderType.Dutch_V2;
   orderStatus: 'open';
   signature: string;
@@ -23,4 +28,4 @@ export type RawOpenDutchIntentV2 = {
   quoteId: string;
   requestId: string;
   createdAt: number;
-};
+}

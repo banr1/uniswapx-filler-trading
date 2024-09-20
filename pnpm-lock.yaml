@@ -48,9 +48,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^8.2.0
         version: 8.2.0(eslint@9.9.0)(typescript@5.5.4)
-      '@uniswap/v3-core':
-        specifier: ^1.0.1
-        version: 1.0.1
       dotenv-cli:
         specifier: ^7.4.2
         version: 7.4.2
