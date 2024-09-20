@@ -74,7 +74,7 @@ export class FillService {
       order: intent.serialize(),
       sig: signature,
     };
-    const gasLimit = 600_000;
+    const gasLimit = 900_000;
     logger.info('Starting to fill the intent 🦄');
     const tx = await this.reactor.execute(signedIntent, { gasLimit });
     const receipt = await tx.wait();
