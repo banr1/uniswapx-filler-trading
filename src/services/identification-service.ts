@@ -6,12 +6,13 @@ import axios from 'axios';
 import { RawOpenDutchIntentV2 } from '../types/raw-dutch-intent-v2';
 import { Wallet } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
-import { getSupportedToken, nowTimestamp } from '../utils';
+import { getTargetToken, nowTimestamp } from '../utils';
 import { logger } from '../logger';
 import { ChainId } from '../types/chain-id';
 import { PERMIT2_ADDRESS } from '../constants';
 import { ERC20, ERC20__factory } from '../types/typechain';
 import { IntentWithSignature } from '../types/intent-with-signature';
+import { IntentHash } from '../types/hash';
 
 interface IdentificationServiceConstructorArgs {
   wallet: Wallet;
@@ -20,12 +21,17 @@ interface IdentificationServiceConstructorArgs {
   chainId: ChainId;
 }
 
+// IdentificationService class
+// This class is responsible for identifying suitable intents
+// It fetches intents from the Uniswap API and filters them
+// based on the input and output tokens, and the current time
 export class IdentificationService {
   private wallet: Wallet;
   private inputTokens: ERC20[];
   private outputTokens: ERC20[];
   private chainId: ChainId;
   private apiBaseUrl = 'https://api.uniswap.org';
+  private lastSkippedIntentHash: IntentHash | null = null;
 
   constructor({
     wallet,
@@ -69,17 +75,24 @@ export class IdentificationService {
     if (!response.data.orders.length || !response.data.orders[0]) {
       // log only when seconds is 0
       if (new Date().getSeconds() === 0) {
-        logger.info(`No intents found 🍪`);
+        logger.info('No intents found 🍪');
+        this.lastSkippedIntentHash = null;
       }
       return null;
     }
 
     const rawIntent = response.data.orders[0];
+    // If the same intent is found again, skip it
+    if (this.lastSkippedIntentHash === rawIntent.orderHash) {
+      logger.info('The same intent found again. Skip it.🦋');
+      return null;
+    }
+
     if (
       rawIntent.type !== OrderType.Dutch_V2 ||
       rawIntent.orderStatus !== 'open'
     ) {
-      logger.info(`An intent found!✨ But it is not a Dutch V2 intent`);
+      logger.info('An intent found!✨ But it is not a Dutch V2 open intent');
       return null;
     }
 
@@ -88,7 +101,7 @@ export class IdentificationService {
       this.chainId,
       PERMIT2_ADDRESS,
     );
-    const intentInputToken = getSupportedToken(
+    const intentInputToken = getTargetToken(
       intent.info.input,
       this.inputTokens,
     );
@@ -98,11 +111,11 @@ export class IdentificationService {
         this.wallet.provider,
       ).symbol();
       logger.info(
-        `An intent found!✨ But input token is not supported: ${intentInputTokenSymbol}`,
+        `An intent found!✨ But input token is not targeted: ${intentInputTokenSymbol}`,
       );
       return null;
     }
-    const intentOutputToken = getSupportedToken(
+    const intentOutputToken = getTargetToken(
       intent.info.outputs[0]!,
       this.outputTokens,
     );
@@ -112,7 +125,7 @@ export class IdentificationService {
         this.wallet.provider,
       ).symbol();
       logger.info(
-        `An intent found!✨ But output token is not supported: ${intentOutputTokenSymbol}`,
+        `An intent found!✨ But output token is not targeted: ${intentOutputTokenSymbol}`,
       );
       return null;
     }
@@ -120,7 +133,7 @@ export class IdentificationService {
     const startTime = intent.info.cosignerData.decayStartTime;
     if (startTime > nowTimestamp()) {
       logger.info(
-        `An intent found!✨ But it is not started yet: ${new Date(startTime * 1000)}`,
+        `An intent found!✨ But it is not started yet: ${new Date(startTime * 1000).toTimeString()}`,
       );
       return null;
     }
@@ -129,7 +142,7 @@ export class IdentificationService {
     const deadline = intent.info.deadline;
     if (endTime < nowTimestamp() || deadline < nowTimestamp()) {
       logger.info(
-        `An intent found!✨ But it is expired: ${new Date(endTime * 1000)}`,
+        `An intent found!✨ But it is expired: ${new Date(endTime * 1000).toTimeString()}`,
       );
       return null;
     }
@@ -149,7 +162,7 @@ export class IdentificationService {
     }
 
     logger.info('An suitable intent found!✨');
-    logger.info(`Intent: ${intent}`);
+    logger.info(`Intent: ${JSON.stringify(intent)}`);
 
     return {
       intent,

@@ -7,13 +7,13 @@ export function nowTimestamp() {
   return Math.floor(Date.now() / 1000);
 }
 
-export function getSupportedToken(
+export function getTargetToken(
   intentToken: DutchInput | DutchOutput,
-  supportedTokens: ERC20[],
+  targetTokens: ERC20[],
 ): ERC20 | null {
   return (
-    supportedTokens.find(
-      supportedToken => supportedToken.address === intentToken.token,
+    targetTokens.find(
+      targetToken => targetToken.address === intentToken.token,
     ) || null
   );
 }
