@@ -2,15 +2,13 @@
 
 import { config } from './config';
 import { logger } from './logger';
-import {
-  MockERC20__factory as ERC20__factory,
-  V2DutchOrderReactor__factory,
-} from '@banr1/uniswapx-sdk/dist/src/contracts';
+import { V2DutchOrderReactor__factory } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { constants, providers, Wallet } from 'ethers';
 import { IdentificationService } from './services/identification-service';
 import { FillService } from './services/fill-service';
 import { REACTOR_ADDRESS } from './constants';
 import { sleep } from './utils';
+import { Erc20__factory } from './types/typechain';
 
 async function monitorIntent(
   identificationService: IdentificationService,
@@ -43,13 +41,13 @@ async function main(): Promise<void> {
 
   const inputTokens = await Promise.all(
     supportedInputTokenAddresses.map(async address =>
-      ERC20__factory.connect(address, wallet),
+      Erc20__factory.connect(address, wallet),
     ),
   );
 
   const outputTokens = [];
   for (const address of supportedOutputTokenAddresses) {
-    const outputToken = ERC20__factory.connect(address, wallet);
+    const outputToken = Erc20__factory.connect(address, wallet);
     await outputToken.approve(REACTOR_ADDRESS, constants.MaxUint256);
     const outputTokenSymbol = await outputToken.symbol();
     logger.info(`Approved ${outputTokenSymbol}📝 for UniswapX Reactor`);

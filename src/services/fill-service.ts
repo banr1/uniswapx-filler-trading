@@ -2,7 +2,6 @@
 
 import { V2DutchOrderReactor } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
-import { MockERC20 as ERC20 } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { logger } from '../logger';
 import { getSupportedToken } from '../utils';
 import { BigNumber, ContractReceipt, ethers, utils, Wallet } from 'ethers';
@@ -17,21 +16,21 @@ import {
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core';
 import { config } from '../config';
 import { POOL_FACTORY_ADDRESS, SWAP_ROUTER_ADDRESS } from '../constants';
-import { UniswapV3Pool__factory } from '../types/typechain';
+import { Erc20, UniswapV3Pool__factory } from '../types/typechain';
 
 interface FillServiceConstructorArgs {
   wallet: Wallet;
   reactor: V2DutchOrderReactor;
-  inputTokens: ERC20[];
-  outputTokens: ERC20[];
+  inputTokens: Erc20[];
+  outputTokens: Erc20[];
 }
 
 export class FillService {
   private wallet: Wallet;
   private provider: ethers.providers.Provider;
   private reactor: V2DutchOrderReactor;
-  private inputTokens: ERC20[];
-  private outputTokens: ERC20[];
+  private inputTokens: Erc20[];
+  private outputTokens: Erc20[];
 
   constructor({
     wallet,

@@ -1,28 +1,33 @@
 // services/identification-service.ts
 
 import { CosignedV2DutchOrder, OrderType } from '@banr1/uniswapx-sdk';
-import { FetchOrdersParams } from '../types/fetch-orders-params';
+import { FetchIntentsParams } from '../types/fetch-intents-params';
 import axios from 'axios';
 import { RawOpenDutchIntentV2 } from '../types/raw-dutch-intent-v2';
-import { MockERC20 as ERC20 } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { Wallet } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 import { getSupportedToken, nowTimestamp } from '../utils';
 import { logger } from '../logger';
 import { ChainId } from '../types/chain-id';
 import { PERMIT2_ADDRESS } from '../constants';
+import { Erc20, Erc20__factory } from '../types/typechain';
 
 interface IdentificationServiceConstructorArgs {
   wallet: Wallet;
-  inputTokens: ERC20[];
-  outputTokens: ERC20[];
+  inputTokens: Erc20[];
+  outputTokens: Erc20[];
   chainId: ChainId;
+}
+
+interface IntentAndSignature {
+  intent: CosignedV2DutchOrder;
+  signature: string;
 }
 
 export class IdentificationService {
   private wallet: Wallet;
-  private inputTokens: ERC20[];
-  private outputTokens: ERC20[];
+  private inputTokens: Erc20[];
+  private outputTokens: Erc20[];
   private chainId: ChainId;
   private apiBaseUrl = 'https://api.uniswap.org';
 
@@ -38,11 +43,8 @@ export class IdentificationService {
     this.chainId = chainId;
   }
 
-  async identifyIntent(): Promise<{
-    intent: CosignedV2DutchOrder;
-    signature: string;
-  } | null> {
-    const params: FetchOrdersParams = {
+  async identifyIntent(): Promise<IntentAndSignature | null> {
+    const params: FetchIntentsParams = {
       chainId: this.chainId,
       limit: 1,
       orderStatus: 'open',
@@ -54,91 +56,109 @@ export class IdentificationService {
     };
 
     try {
-      const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(
-        `${this.apiBaseUrl}/v2/orders`,
-        { params },
-      );
-      if (!response.data.orders.length) {
-        // log only when seconds is 0
-        if (new Date().getSeconds() === 0) {
-          logger.info(`No intents found 🍪`);
-        }
-        return null;
-      }
-
-      const rawIntent = response.data.orders[0];
-      if (
-        !rawIntent ||
-        rawIntent.type !== OrderType.Dutch_V2 ||
-        rawIntent.orderStatus !== 'open'
-      ) {
-        logger.info(`An intent found!✨ But it is not a Dutch V2 intent`);
-        return null;
-      }
-
-      const intentInputToken = getSupportedToken(
-        rawIntent.input,
-        this.inputTokens,
-      );
-      if (!intentInputToken) {
-        logger.info(
-          `An intent found!✨ But input token is not supported: ${rawIntent.input.token}`,
-        );
-        return null;
-      }
-      const intentOutputToken = getSupportedToken(
-        rawIntent.outputs[0]!,
-        this.outputTokens,
-      );
-      if (!intentOutputToken) {
-        logger.info(
-          `An intent found!✨ But output token is not supported: ${rawIntent.outputs[0]!.token}`,
-        );
-        return null;
-      }
-
-      const endTime = rawIntent.cosignerData.decayEndTime;
-      if (endTime < nowTimestamp()) {
-        logger.info(
-          `An intent found!✨ But it is expired: ${new Date(endTime * 1000)}`,
-        );
-        return null;
-      }
-
-      const intent = this.parseIntent(rawIntent);
-
-      const resolvedAmount = intent.resolve({ timestamp: nowTimestamp() })
-        .outputs[0]!.amount;
-      const outputTokenBalance = await intentOutputToken.balanceOf(
-        this.wallet.address,
-      );
-      if (outputTokenBalance.lt(resolvedAmount)) {
-        const tokenSymbol = await intentOutputToken.symbol();
-        const tokenDecimals = await intentOutputToken.decimals();
-        logger.info(
-          `An intent found!✨ But balance is not enough (resolved amount: ${formatUnits(resolvedAmount, tokenDecimals)} ${tokenSymbol} balance: ${formatUnits(outputTokenBalance, tokenDecimals)} ${tokenSymbol})`,
-        );
-        return null;
-      }
-
-      logger.info('An suitable intent found!✨');
-      logger.info(`Intent: ${intent}`);
-
-      return {
-        intent,
-        signature: rawIntent.signature,
-      };
+      return await this._identifyIntent(params);
     } catch (error) {
       logger.error(`Error🚨 fetching orders: ${error}`);
       throw error;
     }
   }
 
-  private parseIntent(rawIntent: RawOpenDutchIntentV2): CosignedV2DutchOrder {
-    return CosignedV2DutchOrder.parse(
+  private async _identifyIntent(
+    params: FetchIntentsParams,
+  ): Promise<IntentAndSignature | null> {
+    const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(
+      `${this.apiBaseUrl}/v2/orders`,
+      { params },
+    );
+    if (!response.data.orders.length) {
+      // log only when seconds is 0
+      if (new Date().getSeconds() === 0) {
+        logger.info(`No intents found 🍪`);
+      }
+      return null;
+    }
+
+    const rawIntent = response.data.orders[0];
+    if (
+      !rawIntent ||
+      rawIntent.type !== OrderType.Dutch_V2 ||
+      rawIntent.orderStatus !== 'open'
+    ) {
+      logger.info(`An intent found!✨ But it is not a Dutch V2 intent`);
+      return null;
+    }
+
+    const intentInputToken = getSupportedToken(
+      rawIntent.input,
+      this.inputTokens,
+    );
+    if (!intentInputToken) {
+      const intentInputTokenSymbol = await Erc20__factory.connect(
+        rawIntent.input.token,
+        this.wallet.provider,
+      ).symbol();
+      logger.info(
+        `An intent found!✨ But input token is not supported: ${intentInputTokenSymbol}`,
+      );
+      return null;
+    }
+    const intentOutputToken = getSupportedToken(
+      rawIntent.outputs[0]!,
+      this.outputTokens,
+    );
+    if (!intentOutputToken) {
+      const intentOutputTokenSymbol = await Erc20__factory.connect(
+        rawIntent.outputs[0]!.token,
+        this.wallet.provider,
+      ).symbol();
+      logger.info(
+        `An intent found!✨ But output token is not supported: ${intentOutputTokenSymbol}`,
+      );
+      return null;
+    }
+
+    const startTime = rawIntent.cosignerData.decayStartTime;
+    if (startTime > nowTimestamp()) {
+      logger.info(
+        `An intent found!✨ But it is not started yet: ${new Date(startTime * 1000)}`,
+      );
+      return null;
+    }
+
+    const endTime = rawIntent.cosignerData.decayEndTime;
+    if (endTime < nowTimestamp()) {
+      logger.info(
+        `An intent found!✨ But it is expired: ${new Date(endTime * 1000)}`,
+      );
+      return null;
+    }
+
+    const intent = CosignedV2DutchOrder.parse(
       rawIntent.encodedOrder,
       this.chainId,
       PERMIT2_ADDRESS,
     );
+
+    const resolvedAmount = intent.resolve({ timestamp: nowTimestamp() })
+      .outputs[0]!.amount;
+    const outputTokenBalance = await intentOutputToken.balanceOf(
+      this.wallet.address,
+    );
+    if (outputTokenBalance.lt(resolvedAmount)) {
+      const tokenSymbol = await intentOutputToken.symbol();
+      const tokenDecimals = await intentOutputToken.decimals();
+      logger.info(
+        `An intent found!✨ But balance is not enough (resolved amount: ${formatUnits(resolvedAmount, tokenDecimals)} ${tokenSymbol} balance: ${formatUnits(outputTokenBalance, tokenDecimals)} ${tokenSymbol})`,
+      );
+      return null;
+    }
+
+    logger.info('An suitable intent found!✨');
+    logger.info(`Intent: ${intent}`);
+
+    return {
+      intent,
+      signature: rawIntent.signature,
+    };
   }
 }
