@@ -26,6 +26,9 @@ interface FillServiceConstructorArgs {
   outputTokens: ERC20[];
 }
 
+// FillService class
+// This class is responsible for filling intents
+// It executes the fill intent transaction and swaps the input token back to the original token
 export class FillService {
   private wallet: Wallet;
   private provider: ethers.providers.Provider;

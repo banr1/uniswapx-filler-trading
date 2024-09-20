@@ -12,6 +12,7 @@ import { ChainId } from '../types/chain-id';
 import { PERMIT2_ADDRESS } from '../constants';
 import { ERC20, ERC20__factory } from '../types/typechain';
 import { IntentWithSignature } from '../types/intent-with-signature';
+import { IntentHash } from '../types/hash';
 
 interface IdentificationServiceConstructorArgs {
   wallet: Wallet;
@@ -20,12 +21,17 @@ interface IdentificationServiceConstructorArgs {
   chainId: ChainId;
 }
 
+// IdentificationService class
+// This class is responsible for identifying suitable intents
+// It fetches intents from the Uniswap API and filters them
+// based on the input and output tokens, and the current time
 export class IdentificationService {
   private wallet: Wallet;
   private inputTokens: ERC20[];
   private outputTokens: ERC20[];
   private chainId: ChainId;
   private apiBaseUrl = 'https://api.uniswap.org';
+  private lastSkippedIntentHash: IntentHash | null = null;
 
   constructor({
     wallet,
@@ -69,17 +75,24 @@ export class IdentificationService {
     if (!response.data.orders.length || !response.data.orders[0]) {
       // log only when seconds is 0
       if (new Date().getSeconds() === 0) {
-        logger.info(`No intents found 🍪`);
+        logger.info('No intents found 🍪');
+        this.lastSkippedIntentHash = null;
       }
       return null;
     }
 
     const rawIntent = response.data.orders[0];
+    // If the same intent is found again, skip it
+    if (this.lastSkippedIntentHash === rawIntent.orderHash) {
+      logger.info('The same intent found again. Skip it.🦋');
+      return null;
+    }
+
     if (
       rawIntent.type !== OrderType.Dutch_V2 ||
       rawIntent.orderStatus !== 'open'
     ) {
-      logger.info(`An intent found!✨ But it is not a Dutch V2 intent`);
+      logger.info('An intent found!✨ But it is not a Dutch V2 open intent');
       return null;
     }
 
