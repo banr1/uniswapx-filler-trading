@@ -17,6 +17,7 @@ import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core';
 import { config } from '../config';
 import { POOL_FACTORY_ADDRESS, SWAP_ROUTER_ADDRESS } from '../constants';
 import { Erc20, UniswapV3Pool__factory } from '../types/typechain';
+import { IntentWithSignature } from '../types/intent-with-signature';
 
 interface FillServiceConstructorArgs {
   wallet: Wallet;
@@ -46,13 +47,7 @@ export class FillService {
   }
 
   // Fill the intent and swap the input token back to the original token
-  async fillIntent({
-    intent,
-    signature,
-  }: {
-    intent: CosignedV2DutchOrder;
-    signature: string;
-  }): Promise<void> {
+  async fillIntent({ intent, signature }: IntentWithSignature): Promise<void> {
     let txReceipt: ContractReceipt;
     try {
       txReceipt = await this.executeFill(intent, signature);

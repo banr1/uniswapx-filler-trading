@@ -11,17 +11,13 @@ import { logger } from '../logger';
 import { ChainId } from '../types/chain-id';
 import { PERMIT2_ADDRESS } from '../constants';
 import { Erc20, Erc20__factory } from '../types/typechain';
+import { IntentWithSignature } from '../types/intent-with-signature';
 
 interface IdentificationServiceConstructorArgs {
   wallet: Wallet;
   inputTokens: Erc20[];
   outputTokens: Erc20[];
   chainId: ChainId;
-}
-
-interface IntentAndSignature {
-  intent: CosignedV2DutchOrder;
-  signature: string;
 }
 
 export class IdentificationService {
@@ -43,7 +39,7 @@ export class IdentificationService {
     this.chainId = chainId;
   }
 
-  async identifyIntent(): Promise<IntentAndSignature | null> {
+  async identifyIntent(): Promise<IntentWithSignature | null> {
     const params: FetchIntentsParams = {
       chainId: this.chainId,
       limit: 1,
@@ -65,7 +61,7 @@ export class IdentificationService {
 
   private async _identifyIntent(
     params: FetchIntentsParams,
-  ): Promise<IntentAndSignature | null> {
+  ): Promise<IntentWithSignature | null> {
     const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(
       `${this.apiBaseUrl}/v2/orders`,
       { params },
