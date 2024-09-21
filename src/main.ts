@@ -74,10 +74,7 @@ async function main(): Promise<void> {
   );
 
   while (true) {
-    // const startTime = performance.now();
     await monitorIntent(identificationService, fillService);
-    // const endTime = performance.now();
-    // logger.info(`Execution time: ${Math.floor(endTime - startTime) / 1000}s`);
     await sleep(interval);
   }
 }
