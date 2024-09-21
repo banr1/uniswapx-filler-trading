@@ -4,7 +4,7 @@ import { V2DutchOrderReactor } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
 import { logger } from '../logger';
 import { getTargetToken } from '../utils';
-import { BigNumber, ContractReceipt, ethers, utils, Wallet } from 'ethers';
+import { BigNumber, ContractReceipt, utils, Wallet } from 'ethers';
 import {
   computePoolAddress,
   FeeAmount,
@@ -31,7 +31,6 @@ interface FillServiceConstructorArgs {
 // It executes the fill intent transaction and swaps the input token back to the original token
 export class FillService {
   private wallet: Wallet;
-  private provider: ethers.providers.Provider;
   private reactor: V2DutchOrderReactor;
   private inputTokens: ERC20[];
   private outputTokens: ERC20[];
@@ -43,7 +42,6 @@ export class FillService {
     outputTokens,
   }: FillServiceConstructorArgs) {
     this.wallet = wallet;
-    this.provider = wallet.provider;
     this.reactor = reactor;
     this.inputTokens = inputTokens;
     this.outputTokens = outputTokens;
@@ -139,7 +137,7 @@ export class FillService {
     });
     const poolContract = UniswapV3Pool__factory.connect(
       poolAddress,
-      this.provider,
+      this.wallet.provider,
     );
     const [slot0, liquidity] = await Promise.all([
       poolContract.slot0(),
