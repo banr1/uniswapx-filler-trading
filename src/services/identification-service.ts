@@ -60,7 +60,7 @@ export class IdentificationService {
     try {
       return await this._identifyIntent(params);
     } catch (error) {
-      logger.error(`Error🚨 fetching orders: ${error}`);
+      logger.error(`Error occurred while identifying intent: ${error}`);
       throw error;
     }
   }
@@ -84,7 +84,7 @@ export class IdentificationService {
     const rawIntent = response.data.orders[0];
     // If the same intent is found again, skip it
     if (this.lastSkippedIntentHash === rawIntent.orderHash) {
-      logger.info('The same intent found again. Skip it.🦋');
+      logger.info('The same intent found again. Skip it 🦋');
       return null;
     }
 
@@ -92,7 +92,7 @@ export class IdentificationService {
       rawIntent.type !== OrderType.Dutch_V2 ||
       rawIntent.orderStatus !== 'open'
     ) {
-      logger.info('An intent found!✨ But it is not a Dutch V2 open intent');
+      logger.info('An intent found!✨ But it is not a Dutch V2 open intent.');
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
@@ -171,7 +171,7 @@ export class IdentificationService {
     }
 
     logger.info('An suitable intent found!✨');
-    logger.info(`Intent: ${JSON.stringify(intent)}`);
+    logger.info(`intent: ${JSON.stringify(intent)}`);
 
     return {
       intent,

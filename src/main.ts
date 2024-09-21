@@ -39,13 +39,11 @@ async function main(): Promise<void> {
   const wallet = new Wallet(privateKey, provider);
   const reactor = V2DutchOrderReactor__factory.connect(REACTOR_ADDRESS, wallet);
 
-  const inputTokens = await Promise.all(
-    targetInputTokenAddresses.map(async address =>
-      ERC20__factory.connect(address, wallet),
-    ),
+  const inputTokens = targetInputTokenAddresses.map(address =>
+    ERC20__factory.connect(address, wallet),
   );
-
   const outputTokens = [];
+  // Run sequentially to avoid nonce issues
   for (const address of targetOutputTokenAddresses) {
     const outputToken = ERC20__factory.connect(address, wallet);
     await outputToken.approve(REACTOR_ADDRESS, constants.MaxUint256);
@@ -79,6 +77,4 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(error => {
-  logger.error(`An error occurred 🚨 in the main function: ${error}`);
-});
+main();
