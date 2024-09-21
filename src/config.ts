@@ -22,7 +22,7 @@ export const config: Config = {
   privateKey: process.env.PRIVATE_KEY,
   alchemyUrl: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
   targetInputTokenAddresses: [
-    '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // USDC
+    '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC
     '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // WETH
     '0x912CE59144191C1204E64559FE8253a0e49E6548', // ARB
     '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f', // WBTC
