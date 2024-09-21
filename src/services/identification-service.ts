@@ -93,6 +93,7 @@ export class IdentificationService {
       rawIntent.orderStatus !== 'open'
     ) {
       logger.info('An intent found!✨ But it is not a Dutch V2 open intent');
+      this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
@@ -101,18 +102,21 @@ export class IdentificationService {
       this.chainId,
       PERMIT2_ADDRESS,
     );
+
     const intentInputToken = getTargetToken(
       intent.info.input,
       this.inputTokens,
     );
     if (!intentInputToken) {
-      const intentInputTokenSymbol = await ERC20__factory.connect(
+      const nonTargetInputToken = ERC20__factory.connect(
         intent.info.input.token,
         this.wallet,
-      ).symbol();
-      logger.info(
-        `An intent found!✨ But input token is not targeted: ${intentInputTokenSymbol}`,
       );
+      const nonTargetInputSymbol = await nonTargetInputToken.symbol();
+      logger.info(
+        `An intent found!✨ But input token is not targeted: ${nonTargetInputSymbol}`,
+      );
+      this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
     const intentOutputToken = getTargetToken(
@@ -120,13 +124,15 @@ export class IdentificationService {
       this.outputTokens,
     );
     if (!intentOutputToken) {
-      const intentOutputTokenSymbol = await ERC20__factory.connect(
+      const nonTargetInputToken = ERC20__factory.connect(
         intent.info.outputs[0]!.token,
         this.wallet,
-      ).symbol();
-      logger.info(
-        `An intent found!✨ But output token is not targeted: ${intentOutputTokenSymbol}`,
       );
+      const nonTargetInputSymbol = await nonTargetInputToken.symbol();
+      logger.info(
+        `An intent found!✨ But output token is not targeted: ${nonTargetInputSymbol}`,
+      );
+      this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
@@ -135,6 +141,7 @@ export class IdentificationService {
       logger.info(
         `An intent found!✨ But it is not started yet: ${new Date(startTime * 1000).toTimeString()}`,
       );
+      this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
@@ -144,6 +151,7 @@ export class IdentificationService {
       logger.info(
         `An intent found!✨ But it is expired: ${new Date(endTime * 1000).toTimeString()}`,
       );
+      this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
@@ -158,6 +166,7 @@ export class IdentificationService {
       logger.info(
         `An intent found!✨ But balance is not enough (resolved amount: ${formatUnits(resolvedAmount, tokenDecimals)} ${tokenSymbol} balance: ${formatUnits(outputTokenBalance, tokenDecimals)} ${tokenSymbol})`,
       );
+      this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
