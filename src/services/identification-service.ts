@@ -108,7 +108,7 @@ export class IdentificationService {
     if (!intentInputToken) {
       const intentInputTokenSymbol = await ERC20__factory.connect(
         intent.info.input.token,
-        this.wallet.provider,
+        this.wallet,
       ).symbol();
       logger.info(
         `An intent found!✨ But input token is not targeted: ${intentInputTokenSymbol}`,
@@ -122,7 +122,7 @@ export class IdentificationService {
     if (!intentOutputToken) {
       const intentOutputTokenSymbol = await ERC20__factory.connect(
         intent.info.outputs[0]!.token,
-        this.wallet.provider,
+        this.wallet,
       ).symbol();
       logger.info(
         `An intent found!✨ But output token is not targeted: ${intentOutputTokenSymbol}`,

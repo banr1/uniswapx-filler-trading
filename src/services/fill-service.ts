@@ -137,7 +137,7 @@ export class FillService {
     });
     const poolContract = UniswapV3Pool__factory.connect(
       poolAddress,
-      this.wallet.provider,
+      this.wallet,
     );
     const [slot0, liquidity] = await Promise.all([
       poolContract.slot0(),
