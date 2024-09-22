@@ -53,14 +53,14 @@ export class FillService {
     try {
       txReceipt = await this.executeFill(intent, signature);
     } catch (error) {
-      logger.error(`Failed to fill the intent 🚨: ${error}`);
+      logger.error(`Error occurred while filling the intent 🚨: ${error}`);
       throw error;
     }
     try {
       await this.swapInputTokenBackToOriginalToken(intent, txReceipt);
     } catch (error) {
       logger.error(
-        `Failed to swap the input token back to the original token 🚨: ${error}`,
+        `Error occurred while swapping the input token back to the original token 🚨: ${error}`,
       );
       throw error;
     }
@@ -79,7 +79,7 @@ export class FillService {
     logger.info('Starting to fill the intent 🦄');
     const tx = await this.reactor.execute(signedIntent, { gasLimit });
     const receipt = await tx.wait();
-    logger.info('Filled the intent successfully 🎉');
+    logger.info('Filled the intent successfully!!🎉');
     logger.info(`receipt: ${receipt}`);
     return receipt;
   }
@@ -176,7 +176,7 @@ export class FillService {
     const tx = await this.wallet.sendTransaction(txToSend);
     const receipt = await tx.wait();
     logger.info(
-      'Swapped the input token back to the original token successfully 🎉',
+      'Swapped the input token back to the original token successfully!🎉',
     );
     logger.info(`receipt: ${receipt}`);
   }
