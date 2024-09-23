@@ -178,6 +178,6 @@ export class FillService {
     logger.info(
       'Swapped the input token back to the original token successfully!🎉',
     );
-    logger.info(`receipt: ${receipt}`);
+    logger.info(`receipt: ${JSON.stringify(receipt)}`);
   }
 }
