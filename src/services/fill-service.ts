@@ -18,6 +18,7 @@ import { config } from '../config';
 import { POOL_FACTORY_ADDRESS, SWAP_ROUTER_ADDRESS } from '../constants';
 import { ERC20, UniswapV3Pool__factory } from '../types/typechain';
 import { IntentWithSignature } from '../types/intent-with-signature';
+import { SignedOrderStruct } from '@banr1/uniswapx-sdk/dist/src/contracts/V2DutchOrderReactor';
 
 interface FillServiceConstructorArgs {
   wallet: Wallet;
@@ -71,7 +72,7 @@ export class FillService {
     intent: CosignedV2DutchOrder,
     signature: string,
   ): Promise<ContractReceipt> {
-    const signedIntent = {
+    const signedIntent: SignedOrderStruct = {
       order: intent.serialize(),
       sig: signature,
     };
