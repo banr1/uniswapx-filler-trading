@@ -27,7 +27,6 @@ async function monitorIntent(
 async function main(): Promise<void> {
   // Prepare the environment
   const {
-    chainId,
     alchemyUrl,
     privateKey,
     interval,
@@ -58,7 +57,6 @@ async function main(): Promise<void> {
     wallet,
     inputTokens,
     outputTokens,
-    chainId,
   });
   const fillService = new FillService({
     wallet,

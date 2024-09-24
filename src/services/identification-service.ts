@@ -8,17 +8,16 @@ import { Wallet } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 import { getTargetToken, nowTimestamp } from '../utils';
 import { logger } from '../logger';
-import { ChainId } from '../types/chain-id';
 import { PERMIT2_ADDRESS } from '../constants';
 import { ERC20, ERC20__factory } from '../types/typechain';
 import { IntentWithSignature } from '../types/intent-with-signature';
 import { IntentHash } from '../types/hash';
+import { config } from '../config';
 
 interface IdentificationServiceConstructorArgs {
   wallet: Wallet;
   inputTokens: ERC20[];
   outputTokens: ERC20[];
-  chainId: ChainId;
 }
 
 // IdentificationService class
@@ -29,7 +28,6 @@ export class IdentificationService {
   private wallet: Wallet;
   private inputTokens: ERC20[];
   private outputTokens: ERC20[];
-  private chainId: ChainId;
   private apiBaseUrl = 'https://api.uniswap.org';
   private lastSkippedIntentHash: IntentHash | null = null;
 
@@ -37,17 +35,24 @@ export class IdentificationService {
     wallet,
     inputTokens,
     outputTokens,
-    chainId,
   }: IdentificationServiceConstructorArgs) {
     this.wallet = wallet;
     this.inputTokens = inputTokens;
     this.outputTokens = outputTokens;
-    this.chainId = chainId;
   }
 
   async identifyIntent(): Promise<IntentWithSignature | null> {
+    try {
+      return await this._identifyIntent();
+    } catch (error) {
+      logger.error(`Error occurred while identifying intent: ${error}`);
+      throw error;
+    }
+  }
+
+  private async _identifyIntent(): Promise<IntentWithSignature | null> {
     const params: FetchIntentsParams = {
-      chainId: this.chainId,
+      chainId: config.chainId,
       limit: 1,
       orderStatus: 'open',
       sortKey: 'createdAt',
@@ -56,18 +61,6 @@ export class IdentificationService {
       orderType: OrderType.Dutch_V2,
       includeV2: true,
     };
-
-    try {
-      return await this._identifyIntent(params);
-    } catch (error) {
-      logger.error(`Error occurred while identifying intent: ${error}`);
-      throw error;
-    }
-  }
-
-  private async _identifyIntent(
-    params: FetchIntentsParams,
-  ): Promise<IntentWithSignature | null> {
     const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(
       `${this.apiBaseUrl}/v2/orders`,
       { params },
@@ -99,7 +92,7 @@ export class IdentificationService {
 
     const intent = CosignedV2DutchOrder.parse(
       rawIntent.encodedOrder,
-      this.chainId,
+      config.chainId,
       PERMIT2_ADDRESS,
     );
 
