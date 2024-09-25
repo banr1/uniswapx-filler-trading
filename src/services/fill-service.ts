@@ -158,7 +158,6 @@ export class FillService {
       slot0[1],
     );
     const swapRoute = new Route([pool], inputToken, originalToken);
-    // const amountOut = await this.getOutputQuote(swapRoute, inputToken, receivedInputTokenAmount);
     const trade = await Trade.exactIn(
       swapRoute,
       CurrencyAmount.fromRawAmount(
