@@ -3,7 +3,7 @@
 import { V2DutchOrderReactor } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
 import { logger } from '../logger';
-import { getTargetToken } from '../utils';
+import { getTargetToken, topicToAddress } from '../utils';
 import { BigNumber, ContractReceipt, utils, Wallet } from 'ethers';
 import {
   computePoolAddress,
@@ -15,7 +15,11 @@ import {
 } from '@uniswap/v3-sdk';
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core';
 import { config } from '../config';
-import { POOL_FACTORY_ADDRESS, SWAP_ROUTER_ADDRESS } from '../constants';
+import {
+  POOL_FACTORY_ADDRESS,
+  SWAP_ROUTER_ADDRESS,
+  TRANSFER_SIGNATURE_HASH,
+} from '../constants';
 import { ERC20, UniswapV3Pool__factory } from '../types/typechain';
 import { IntentWithSignature } from '../types/intent-with-signature';
 import { SignedOrderStruct } from '@banr1/uniswapx-sdk/dist/src/contracts/V2DutchOrderReactor';
@@ -81,7 +85,7 @@ export class FillService {
     const tx = await this.reactor.execute(signedIntent, { gasLimit });
     const receipt = await tx.wait();
     logger.info('Filled the intent successfully!!🎉');
-    logger.info(`receipt: ${receipt}`);
+    logger.info(`receipt: ${JSON.stringify(receipt)}`);
     return receipt;
   }
 
@@ -90,11 +94,12 @@ export class FillService {
     intent: CosignedV2DutchOrder,
     txReceipt: ContractReceipt,
   ): Promise<void> {
-    const inputTokenTransferEvent = txReceipt.events!.find(
-      event =>
-        event.event === 'Transfer' &&
-        event.topics[1] === intent.info.swapper &&
-        event.topics[2] === this.wallet.address,
+    // Find the transfer event that the swapper sent the input token to me
+    const inputTokenTransferEvent = txReceipt.logs.find(
+      log =>
+        log.topics[0] === TRANSFER_SIGNATURE_HASH &&
+        topicToAddress(log.topics[1]!) === intent.info.swapper && // from
+        topicToAddress(log.topics[2]!) === this.wallet.address, // to
     );
     if (inputTokenTransferEvent === undefined) {
       logger.error('Failed to find the transfer event for the input token 🚨');

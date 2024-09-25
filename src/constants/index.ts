@@ -34,3 +34,7 @@ export const POOL_FACTORY_ADDRESS = POOL_FACTORY_ADDRESSES[chainId];
 export const SWAP_ROUTER_ADDRESS = SWAP_ROUTER_ADDRESSES[chainId];
 export const QUOTER_CONTRACT_ADDRESS = QUOTER_CONTRACT_ADDRESSES[chainId];
 export const REACTOR_ADDRESS = REACTOR_ADDRESSES[chainId];
+
+// ethers.utils.keccak256(ethers.utils.toUtf8Bytes('Transfer(address,address,uint256)'));
+export const TRANSFER_SIGNATURE_HASH =
+  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
