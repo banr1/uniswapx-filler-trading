@@ -41,6 +41,7 @@ export class IdentificationService {
     this.outputTokens = outputTokens;
   }
 
+  // Fetch intents from the Uniswap API and identify suitable intents
   async identifyIntent(): Promise<IntentWithSignature | null> {
     try {
       return await this._identifyIntent();
@@ -96,6 +97,12 @@ export class IdentificationService {
       PERMIT2_ADDRESS,
     );
 
+    if (!intent.info.outputs[0]) {
+      logger.info('An intent found!✨ But it has no output token.');
+      this.lastSkippedIntentHash = rawIntent.orderHash;
+      return null;
+    }
+
     const intentInputToken = getTargetToken(
       intent.info.input,
       this.inputTokens,
@@ -113,12 +120,12 @@ export class IdentificationService {
       return null;
     }
     const intentOutputToken = getTargetToken(
-      intent.info.outputs[0]!,
+      intent.info.outputs[0],
       this.outputTokens,
     );
     if (!intentOutputToken) {
       const nonTargetInputToken = ERC20__factory.connect(
-        intent.info.outputs[0]!.token,
+        intent.info.outputs[0].token,
         this.wallet,
       );
       const nonTargetInputSymbol = await nonTargetInputToken.symbol();

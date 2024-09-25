@@ -47,7 +47,9 @@ async function main(): Promise<void> {
     const outputToken = ERC20__factory.connect(address, wallet);
     await outputToken.approve(REACTOR_ADDRESS, constants.MaxUint256);
     const outputTokenSymbol = await outputToken.symbol();
+    const outputTokenBalance = await outputToken.balanceOf(wallet.address);
     logger.info(`Approved ${outputTokenSymbol}🖊️ for UniswapX Reactor`);
+    logger.info(`Balance of ${outputTokenSymbol}💰: ${outputTokenBalance}`);
     outputTokens.push(outputToken);
   }
   logger.info('Preparation completed 🌱');
