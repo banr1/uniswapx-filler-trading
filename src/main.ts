@@ -9,6 +9,7 @@ import { FillService } from './services/fill-service';
 import { REACTOR_ADDRESS } from './constants';
 import { sleep } from './utils';
 import { ERC20__factory } from './types/typechain';
+import { formatUnits } from 'ethers/lib/utils';
 
 async function monitorIntent(
   identificationService: IdentificationService,
@@ -48,8 +49,11 @@ async function main(): Promise<void> {
     await outputToken.approve(REACTOR_ADDRESS, constants.MaxUint256);
     const outputTokenSymbol = await outputToken.symbol();
     const outputTokenBalance = await outputToken.balanceOf(wallet.address);
-    logger.info(`Approved ${outputTokenSymbol}🖊️ for UniswapX Reactor`);
-    logger.info(`Balance of ${outputTokenSymbol}💰: ${outputTokenBalance}`);
+    const outputTokenDecimal = await outputToken.decimals();
+    logger.info(`Approved🖊️ ${outputTokenSymbol} for UniswapX Reactor`);
+    logger.info(
+      `Balance💰: ${formatUnits(outputTokenBalance, outputTokenDecimal)} ${outputTokenSymbol}`,
+    );
     outputTokens.push(outputToken);
   }
   logger.info('Preparation completed 🌱');
