@@ -66,7 +66,8 @@ export class IdentificationService {
       `${this.apiBaseUrl}/v2/orders`,
       { params },
     );
-    if (!response.data.orders.length || !response.data.orders[0]) {
+    const nIntents = response.data.orders.length;
+    if (!nIntents || nIntents === 0) {
       // log only when seconds is 0
       if (new Date().getSeconds() === 0) {
         logger.info('No intents found 🍪');
@@ -75,7 +76,8 @@ export class IdentificationService {
       return null;
     }
 
-    const rawIntent = response.data.orders[0];
+    // Get the latest intent
+    const rawIntent = response.data.orders[nIntents - 1]!;
     // If the same intent is found again, skip it
     if (this.lastSkippedIntentHash === rawIntent.orderHash) {
       logger.info('The same intent found again. Skip it 🦋');
