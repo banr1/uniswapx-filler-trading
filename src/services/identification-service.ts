@@ -52,6 +52,7 @@ export class IdentificationService {
   }
 
   private async _identifyIntent(): Promise<IntentWithSignature | null> {
+    // Fetch an intent that is open, Dutch V2, and latest
     const params: FetchIntentsParams = {
       chainId: config.chainId,
       limit: 1,
@@ -67,7 +68,7 @@ export class IdentificationService {
       { params },
     );
     const nIntents = response.data.orders.length;
-    if (!nIntents || nIntents === 0) {
+    if (nIntents === 0) {
       // log only when seconds is 0
       if (new Date().getSeconds() === 0) {
         logger.info('No intents found 🍪');
@@ -76,8 +77,16 @@ export class IdentificationService {
       return null;
     }
 
-    // Get the latest intent
-    const rawIntent = response.data.orders[nIntents - 1]!;
+    const rawIntent = response.data.orders[0]!;
+    // If the intent is in the ignore list, skip it
+    if (config.ignoreIntentHashes.includes(rawIntent.orderHash)) {
+      // log only when seconds is 0
+      if (new Date().getSeconds() === 0) {
+        logger.info('The intent is in the ignore list. Skip it 🥿');
+      }
+      return null;
+    }
+
     // If the same intent is found again, skip it
     if (this.lastSkippedIntentHash === rawIntent.orderHash) {
       logger.info('The same intent found again. Skip it 🦋');
