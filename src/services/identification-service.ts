@@ -9,7 +9,7 @@ import { formatUnits } from 'ethers/lib/utils';
 import { getTargetToken, nowTimestamp } from '../utils';
 import { logger } from '../logger';
 import { PERMIT2_ADDRESS } from '../constants';
-import { ERC20, ERC20__factory } from '../types/typechain';
+import { ERC20 } from '../types/typechain';
 import { IntentWithSignature } from '../types/intent-with-signature';
 import { IntentHash } from '../types/hash';
 import { config } from '../config';
@@ -119,14 +119,7 @@ export class IdentificationService {
       this.inputTokens,
     );
     if (!intentInputToken) {
-      const nonTargetInputToken = ERC20__factory.connect(
-        intent.info.input.token,
-        this.wallet,
-      );
-      const nonTargetInputSymbol = await nonTargetInputToken.symbol();
-      logger.info(
-        `An intent found!✨ But input token is not targeted: ${nonTargetInputSymbol}`,
-      );
+      logger.info(`An intent found!✨ But input token is not targeted`);
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
@@ -135,14 +128,7 @@ export class IdentificationService {
       this.outputTokens,
     );
     if (!intentOutputToken) {
-      const nonTargetInputToken = ERC20__factory.connect(
-        intent.info.outputs[0].token,
-        this.wallet,
-      );
-      const nonTargetInputSymbol = await nonTargetInputToken.symbol();
-      logger.info(
-        `An intent found!✨ But output token is not targeted: ${nonTargetInputSymbol}`,
-      );
+      logger.info(`An intent found!✨ But output token is not targeted`);
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
