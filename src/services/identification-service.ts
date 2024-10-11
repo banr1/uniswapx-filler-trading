@@ -89,7 +89,9 @@ export class IdentificationService {
 
     // If the same intent is found again, skip it
     if (this.lastSkippedIntentHash === rawIntent.orderHash) {
-      logger.info('The same intent found again. Skip it 🦋');
+      logger.info(
+        `The same intent found again. Skip it 🦋: ${rawIntent.orderHash}`,
+      );
       return null;
     }
 
