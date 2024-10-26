@@ -8,7 +8,12 @@
     "ecmaVersion": 2020
   },
   "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
-  "plugins": ["@typescript-eslint", "prettier", "unused-imports", "simple-import-sort"],
+  "plugins": [
+    "@typescript-eslint",
+    "prettier",
+    "unused-imports",
+    "simple-import-sort"
+  ],
   "ignorePatterns": [
     "node_modules/",
     "dist/",

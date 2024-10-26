@@ -154,22 +154,53 @@ export class IdentificationService {
       return null;
     }
 
-    const resolvedAmount = intent.resolve({ timestamp: nowTimestamp() })
-      .outputs[0]!.amount;
+    logger.info('(resolution start timing)');
+    const resolution = intent.resolve({ timestamp: nowTimestamp() });
+    const resolvedOutputAmount = resolution.outputs[0]!.amount;
     const outputTokenBalance = await intentOutputToken.balanceOf(
       this.wallet.address,
     );
-    if (outputTokenBalance.lt(resolvedAmount)) {
+    if (outputTokenBalance.lt(resolvedOutputAmount)) {
       const tokenSymbol = await intentOutputToken.symbol();
       const tokenDecimals = await intentOutputToken.decimals();
       logger.info(
-        `An intent found!✨ But balance is not enough (resolved amount: ${formatUnits(resolvedAmount, tokenDecimals)} ${tokenSymbol} balance: ${formatUnits(outputTokenBalance, tokenDecimals)} ${tokenSymbol})`,
+        `An intent found!✨ But balance is not enough (resolved amount: ${formatUnits(resolvedOutputAmount, tokenDecimals)} ${tokenSymbol} balance: ${formatUnits(outputTokenBalance, tokenDecimals)} ${tokenSymbol})`,
+      );
+      this.lastSkippedIntentHash = rawIntent.orderHash;
+      return null;
+    }
+
+    const inputName = await intentInputToken.symbol();
+    const outputName = await intentOutputToken.symbol();
+    const inputBinanceName =
+      inputName === 'WETH' ? 'ETH' : inputName === 'WBTC' ? 'BTC' : inputName;
+    const outputBinanceName =
+      outputName === 'WETH'
+        ? 'ETH'
+        : outputName === 'WBTC'
+          ? 'BTC'
+          : outputName;
+    const pair = `${inputBinanceName}${outputBinanceName}`;
+    logger.info(`input: ${inputName}`);
+    logger.info(`output: ${outputName}`);
+    logger.info(`pair: ${pair}`);
+    const res = await axios.get(
+      `https://api.binance.com/api/v3/depth?symbol=${pair}&limit=1`,
+    );
+    const binancePrice = Number(res.data.bids[0][0]);
+    // It's like an 'actual price' because the price is calculated based on only the output amount of the filler
+    const price = resolution.input.amount.div(resolvedOutputAmount);
+
+    if (price.gt(binancePrice)) {
+      logger.info(
+        `An intent found!✨ But the price is not good (price: ${price.toString()}, Binance price: ${binancePrice})`,
       );
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
     logger.info('An suitable intent found!✨');
+    logger.info(`price: ${price.toString()}, Binance price: ${binancePrice}`);
     logger.info(`intent: ${JSON.stringify(intent)}`);
 
     return {
