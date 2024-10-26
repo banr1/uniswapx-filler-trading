@@ -38,9 +38,9 @@ export class FillService {
 
   // Fill the intent and swap the input token back to the original token
   async fillIntent({ intent, signature }: IntentWithSignature): Promise<void> {
-    let txReceipt: ContractReceipt;
+    // let txReceipt: ContractReceipt;
     try {
-      txReceipt = await this.executeFill(intent, signature);
+      await this.executeFill(intent, signature);
     } catch (error) {
       logger.error(`Error occurred while filling the intent 🚨: ${error}`);
       throw error;
