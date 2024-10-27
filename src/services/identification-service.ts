@@ -185,7 +185,7 @@ export class IdentificationService {
     logger.info(`output: ${outputName}`);
     logger.info(`pair: ${pair}`);
     const res = await axios.get(
-      `https://api.binance.com/api/v3/depth?symbol=${pair}&limit=1`,
+      `https://api.binance.us/api/v3/depth?symbol=${pair}&limit=1`,
     );
     const binancePrice = Number(res.data.bids[0][0]);
     // It's like an 'actual price' because the price is calculated based on only the output amount of the filler
