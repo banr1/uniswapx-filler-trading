@@ -13,6 +13,7 @@ import { ERC20 } from '../types/typechain';
 import { IntentWithSignature } from '../types/intent-with-signature';
 import { IntentHash } from '../types/hash';
 import { config } from '../config';
+import Decimal from 'decimal.js';
 
 interface IdentificationServiceConstructorArgs {
   wallet: Wallet;
@@ -135,6 +136,23 @@ export class IdentificationService {
       return null;
     }
 
+    const inputName = await intentInputToken.symbol();
+    const outputName = await intentOutputToken.symbol();
+    const inputBinanceName =
+      inputName === 'WETH' ? 'ETH' : inputName === 'WBTC' ? 'BTC' : inputName;
+    const outputBinanceName =
+      outputName === 'WETH'
+        ? 'ETH'
+        : outputName === 'WBTC'
+          ? 'BTC'
+          : outputName;
+    const pair = `${inputBinanceName}${outputBinanceName}`;
+    const res = await axios.get(
+      `https://api.binance.us/api/v3/depth?symbol=${pair}&limit=1`,
+    );
+    const binancePrice = new Decimal(res.data.bids[0][0]);
+    logger.info(`Binance price: ${binancePrice}`);
+
     const startTime = intent.info.cosignerData.decayStartTime;
     if (startTime > nowTimestamp()) {
       logger.info(
@@ -170,37 +188,18 @@ export class IdentificationService {
       return null;
     }
 
-    const inputName = await intentInputToken.symbol();
-    const outputName = await intentOutputToken.symbol();
-    const inputBinanceName =
-      inputName === 'WETH' ? 'ETH' : inputName === 'WBTC' ? 'BTC' : inputName;
-    const outputBinanceName =
-      outputName === 'WETH'
-        ? 'ETH'
-        : outputName === 'WBTC'
-          ? 'BTC'
-          : outputName;
-    const pair = `${inputBinanceName}${outputBinanceName}`;
-    logger.info(`input: ${inputName}`);
-    logger.info(`output: ${outputName}`);
-    logger.info(`pair: ${pair}`);
-    const res = await axios.get(
-      `https://api.binance.us/api/v3/depth?symbol=${pair}&limit=1`,
-    );
-    const binancePrice = Number(res.data.bids[0][0]);
     // It's like an 'actual price' because the price is calculated based on only the output amount of the filler
-    const price = resolution.input.amount.div(resolvedOutputAmount);
+    // const price = resolution.input.amount.div(resolvedOutputAmount);
 
-    if (price.gt(binancePrice)) {
-      logger.info(
-        `An intent found!✨ But the price is not good (price: ${price.toString()}, Binance price: ${binancePrice})`,
-      );
-      this.lastSkippedIntentHash = rawIntent.orderHash;
-      return null;
-    }
+    // if (price.gt(binancePrice)) {
+    //   logger.info(
+    //     `An intent found!✨ But the price is not good (price: ${price.toString()}, Binance price: ${binancePrice})`,
+    //   );
+    //   this.lastSkippedIntentHash = rawIntent.orderHash;
+    //   return null;
+    // }
 
     logger.info('An suitable intent found!✨');
-    logger.info(`price: ${price.toString()}, Binance price: ${binancePrice}`);
     logger.info(`intent: ${JSON.stringify(intent)}`);
 
     return {
