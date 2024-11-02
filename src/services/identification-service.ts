@@ -136,8 +136,8 @@ export class IdentificationService {
     const res = await axios.get(
       `https://api.binance.us/api/v3/depth?symbol=${binancePair}&limit=1`,
     );
-    const binancePrice = new Decimal(res.data.bids[0][0]);
-    logger.info(`Binance price: ${binancePrice} ${binancePair}`);
+    const sellingBinancePrice = new Decimal(res.data.bids[0][0]);
+    logger.info(`Selling binance price: ${sellingBinancePrice} ${binancePair}`);
 
     const startTime = intent.info.cosignerData.decayStartTime;
     if (startTime > nowTimestamp()) {
@@ -180,16 +180,16 @@ export class IdentificationService {
     }
 
     // It's like an 'actual price' because the price is calculated based on only the output amount of the filler
-    const price = resolvedOutAmount.div(resolvedInAmount);
-    logger.info(`Price: ${price.toString()} ${pair}`);
+    const buyingPrice = resolvedOutAmount.div(resolvedInAmount);
+    logger.info(`Buying price: ${buyingPrice.toString()} ${pair}`);
 
-    // if (price.gt(binancePrice)) {
-    //   logger.info(
-    //     `An intent found!✨ But the price is not good (price: ${price.toString()}, Binance price: ${binancePrice})`,
-    //   );
-    //   this.lastSkippedIntentHash = rawIntent.orderHash;
-    //   return null;
-    // }
+    if (buyingPrice.gt(sellingBinancePrice)) {
+      logger.info(
+        `An intent found!✨ But the price is not good (buying price: ${buyingPrice.toString()}, selling binance price: ${sellingBinancePrice})`,
+      );
+      this.lastSkippedIntentHash = rawIntent.orderHash;
+      return null;
+    }
 
     logger.info('An suitable intent found!✨');
     logger.info(`intent: ${JSON.stringify(intent)}`);
