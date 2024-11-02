@@ -7,9 +7,9 @@ import { constants, providers, Wallet } from 'ethers';
 import { IdentificationService } from './services/identification-service';
 import { FillService } from './services/fill-service';
 import { REACTOR_ADDRESS } from './constants';
-import { sleep } from './utils';
+import { bigNumberToDecimal, sleep } from './utils';
 import { ERC20__factory } from './types/typechain';
-import { formatUnits } from 'ethers/lib/utils';
+import { ERC20State } from './erc20-state';
 
 async function monitorIntent(
   identificationService: IdentificationService,
@@ -39,37 +39,54 @@ async function main(): Promise<void> {
   const wallet = new Wallet(privateKey, provider);
   const reactor = V2DutchOrderReactor__factory.connect(REACTOR_ADDRESS, wallet);
 
-  const inputTokens = targetInputTokenAddresses.map(address =>
-    ERC20__factory.connect(address, wallet),
-  );
-  const outputTokens = [];
+  const inTokens: ERC20State[] = [];
+  for (const address of targetInputTokenAddresses) {
+    const inputToken = ERC20__factory.connect(address, wallet);
+    await inputToken.approve(REACTOR_ADDRESS, constants.MaxUint256);
+    const symbol = await inputToken.symbol();
+    const decimals = await inputToken.decimals();
+    const balance = bigNumberToDecimal(
+      await inputToken.balanceOf(wallet.address),
+      decimals,
+    );
+    logger.info(`Approved🖊️ ${symbol} for UniswapX Reactor`);
+    logger.info(`Balance💰: ${balance} ${symbol}`);
+    inTokens.push({
+      address,
+      symbol,
+      balance,
+      decimals,
+    });
+  }
+
+  const outTokens: ERC20State[] = [];
   // Run sequentially to avoid nonce issues
   for (const address of targetOutputTokenAddresses) {
     const outputToken = ERC20__factory.connect(address, wallet);
     await outputToken.approve(REACTOR_ADDRESS, constants.MaxUint256);
-    const outputTokenSymbol = await outputToken.symbol();
-    const outputTokenBalance = await outputToken.balanceOf(wallet.address);
-    const outputTokenDecimal = await outputToken.decimals();
-    logger.info(`Approved🖊️ ${outputTokenSymbol} for UniswapX Reactor`);
-    logger.info(
-      `Balance💰: ${formatUnits(outputTokenBalance, outputTokenDecimal)} ${outputTokenSymbol}`,
+    const symbol = await outputToken.symbol();
+    const decimals = await outputToken.decimals();
+    const balance = bigNumberToDecimal(
+      await outputToken.balanceOf(wallet.address),
+      decimals,
     );
-    outputTokens.push(outputToken);
+    logger.info(`Approved🖊️ ${symbol} for UniswapX Reactor`);
+    logger.info(`Balance💰: ${balance} ${symbol}`);
+    outTokens.push({
+      address,
+      symbol,
+      balance,
+      decimals,
+    });
   }
   logger.info('Preparation completed 🌱');
 
   // Initialize the services
   const identificationService = new IdentificationService({
-    wallet,
-    inputTokens,
-    outputTokens,
+    inTokens,
+    outTokens,
   });
-  const fillService = new FillService({
-    wallet,
-    reactor,
-    inputTokens,
-    outputTokens,
-  });
+  const fillService = new FillService({ reactor });
 
   logger.info(
     `Starting the main function 🚀 with ${interval / 1000}s interval`,

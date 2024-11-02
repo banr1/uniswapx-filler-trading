@@ -4,21 +4,19 @@ import { CosignedV2DutchOrder, OrderType } from '@banr1/uniswapx-sdk';
 import { FetchIntentsParams } from '../types/fetch-intents-params';
 import axios from 'axios';
 import { RawOpenDutchIntentV2 } from '../types/raw-dutch-intent-v2';
-import { Wallet } from 'ethers';
-import { formatUnits } from 'ethers/lib/utils';
-import { getTargetToken, nowTimestamp } from '../utils';
+import { BigNumber } from 'ethers';
+import { bigNumberToDecimal, getTargetToken, nowTimestamp } from '../utils';
 import { logger } from '../logger';
 import { PERMIT2_ADDRESS } from '../constants';
-import { ERC20 } from '../types/typechain';
 import { IntentWithSignature } from '../types/intent-with-signature';
 import { IntentHash } from '../types/hash';
 import { config } from '../config';
 import Decimal from 'decimal.js';
+import { ERC20State } from '../erc20-state';
 
 interface IdentificationServiceConstructorArgs {
-  wallet: Wallet;
-  inputTokens: ERC20[];
-  outputTokens: ERC20[];
+  inTokens: ERC20State[];
+  outTokens: ERC20State[];
 }
 
 // IdentificationService class
@@ -26,20 +24,14 @@ interface IdentificationServiceConstructorArgs {
 // It fetches intents from the Uniswap API and filters them
 // based on the input and output tokens, and the current time
 export class IdentificationService {
-  private wallet: Wallet;
-  private inputTokens: ERC20[];
-  private outputTokens: ERC20[];
+  private inTokens: ERC20State[];
+  private outTokens: ERC20State[];
   private apiBaseUrl = 'https://api.uniswap.org';
   private lastSkippedIntentHash: IntentHash | null = null;
 
-  constructor({
-    wallet,
-    inputTokens,
-    outputTokens,
-  }: IdentificationServiceConstructorArgs) {
-    this.wallet = wallet;
-    this.inputTokens = inputTokens;
-    this.outputTokens = outputTokens;
+  constructor({ inTokens, outTokens }: IdentificationServiceConstructorArgs) {
+    this.inTokens = inTokens;
+    this.outTokens = outTokens;
   }
 
   // Fetch intents from the Uniswap API and identify suitable intents
@@ -117,41 +109,35 @@ export class IdentificationService {
       return null;
     }
 
-    const intentInputToken = getTargetToken(
-      intent.info.input,
-      this.inputTokens,
-    );
-    if (!intentInputToken) {
+    const intentInToken = getTargetToken(intent.info.input, this.inTokens);
+    if (!intentInToken) {
       logger.info(`An intent found!✨ But input token is not targeted`);
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
-    const intentOutputToken = getTargetToken(
+    const intentOutToken = getTargetToken(
       intent.info.outputs[0],
-      this.outputTokens,
+      this.outTokens,
     );
-    if (!intentOutputToken) {
+    if (!intentOutToken) {
       logger.info(`An intent found!✨ But output token is not targeted`);
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
-    const inputName = await intentInputToken.symbol();
-    const outputName = await intentOutputToken.symbol();
-    const inputBinanceName =
-      inputName === 'WETH' ? 'ETH' : inputName === 'WBTC' ? 'BTC' : inputName;
-    const outputBinanceName =
-      outputName === 'WETH'
-        ? 'ETH'
-        : outputName === 'WBTC'
-          ? 'BTC'
-          : outputName;
-    const pair = `${inputBinanceName}${outputBinanceName}`;
+    const inName = intentInToken.symbol;
+    const outName = intentOutToken.symbol;
+    const pair = `${inName}/${outName}`;
+    const inBinanceName =
+      inName === 'WETH' ? 'ETH' : inName === 'WBTC' ? 'BTC' : inName;
+    const outBinanceName =
+      outName === 'WETH' ? 'ETH' : outName === 'WBTC' ? 'BTC' : outName;
+    const binancePair = `${inBinanceName}${outBinanceName}`;
     const res = await axios.get(
-      `https://api.binance.us/api/v3/depth?symbol=${pair}&limit=1`,
+      `https://api.binance.us/api/v3/depth?symbol=${binancePair}&limit=1`,
     );
     const binancePrice = new Decimal(res.data.bids[0][0]);
-    logger.info(`Binance price: ${binancePrice}`);
+    logger.info(`Binance price: ${binancePrice} ${binancePair}`);
 
     const startTime = intent.info.cosignerData.decayStartTime;
     if (startTime > nowTimestamp()) {
@@ -174,22 +160,28 @@ export class IdentificationService {
 
     logger.info('(resolution start timing)');
     const resolution = intent.resolve({ timestamp: nowTimestamp() });
-    const resolvedOutputAmount = resolution.outputs[0]!.amount;
-    const outputTokenBalance = await intentOutputToken.balanceOf(
-      this.wallet.address,
+    const resolvedInAmount = bigNumberToDecimal(
+      resolution.input.amount,
+      intentInToken.decimals,
     );
-    if (outputTokenBalance.lt(resolvedOutputAmount)) {
-      const tokenSymbol = await intentOutputToken.symbol();
-      const tokenDecimals = await intentOutputToken.decimals();
+    const resolvedOutAmount = bigNumberToDecimal(
+      resolution.outputs
+        .map(output => output.amount)
+        .reduce((a, b) => a.add(b), BigNumber.from(0)),
+      intentOutToken.decimals,
+    );
+    const outBalance = intentOutToken.balance;
+    if (outBalance.lt(resolvedOutAmount)) {
       logger.info(
-        `An intent found!✨ But balance is not enough (resolved amount: ${formatUnits(resolvedOutputAmount, tokenDecimals)} ${tokenSymbol} balance: ${formatUnits(outputTokenBalance, tokenDecimals)} ${tokenSymbol})`,
+        `An intent found!✨ But balance is not enough (resolved amount: ${resolvedOutAmount.toString()} ${outName} balance: ${outBalance} ${outName})`,
       );
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
     // It's like an 'actual price' because the price is calculated based on only the output amount of the filler
-    // const price = resolution.input.amount.div(resolvedOutputAmount);
+    const price = resolvedOutAmount.div(resolvedInAmount);
+    logger.info(`Price: ${price.toString()} ${pair}`);
 
     // if (price.gt(binancePrice)) {
     //   logger.info(
