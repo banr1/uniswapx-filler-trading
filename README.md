@@ -1,4 +1,4 @@
-# UniswapX Filler
+# UniswapX Filler Trading
 
 ## Getting Started
 Here's a README section for setting up the development environment, based on the steps you provided:
@@ -20,6 +20,7 @@ To set up the development environment, follow these steps:
 3. Fill in the required environment variables in the `.env` file. Make sure to provide valid values for all necessary fields.
    - `PRIVATE_KEY`: The private key of the wallet that will be used to fill an intent.
    - `ALCHEMY_API_KEY`: The Alchemy API key to use for interacting with the Arbitrum network.
+   - `TELEGRAM_API_KEY`: The API key for the Telegram bot.
 
    like this:
    ```
