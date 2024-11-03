@@ -6,6 +6,7 @@ import { logger } from '../logger';
 import { ContractReceipt } from 'ethers';
 import { IntentWithSignature } from '../types/intent-with-signature';
 import { SignedOrderStruct } from '@banr1/uniswapx-sdk/dist/src/contracts/V2DutchOrderReactor';
+import { sendMessage } from '../telegram';
 
 interface FillServiceConstructorArgs {
   reactor: V2DutchOrderReactor;
@@ -46,6 +47,7 @@ export class FillService {
     const tx = await this.reactor.execute(signedIntent, { gasLimit });
     const receipt = await tx.wait();
     logger.info('Filled the intent successfully!!🎉');
+    sendMessage(`Filled the intent successfully!!🎉`);
     logger.info(`receipt: ${JSON.stringify(receipt)}`);
     return receipt;
   }

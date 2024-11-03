@@ -139,7 +139,6 @@ export class IdentificationService {
     );
     const sellingBinancePrice = new Decimal(res.data.bids[0][0]);
     logger.info(`Selling binance price: ${sellingBinancePrice} ${binancePair}`);
-    sendMessage(`Selling binance price: ${sellingBinancePrice} ${binancePair}`);
 
     const startTime = intent.info.cosignerData.decayStartTime;
     if (startTime > nowTimestamp()) {
@@ -184,15 +183,19 @@ export class IdentificationService {
     // It's like an 'actual price' because the price is calculated based on only the output amount of the filler
     const buyingPrice = resolvedOutAmount.div(resolvedInAmount);
     logger.info(`Buying price: ${buyingPrice.toString()} ${pair}`);
-    sendMessage(`Buying price: ${buyingPrice.toString()} ${pair}`);
 
     if (buyingPrice.gt(sellingBinancePrice)) {
       logger.info(
         `An intent found!✨ But the price is not good (buying price: ${buyingPrice.toString()}, selling binance price: ${sellingBinancePrice})`,
       );
-      this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
+
+    sendMessage(
+      `An intent found!✨\n\n` +
+        `- Buying price: ${buyingPrice.toString()} ${pair}\n` +
+        `- Selling binance price: ${sellingBinancePrice} ${inBinanceName}/${outBinanceName}`,
+    );
 
     logger.info('An suitable intent found!✨');
     logger.info(`intent: ${JSON.stringify(intent)}`);
