@@ -13,6 +13,7 @@ import { IntentHash } from '../types/hash';
 import { config } from '../config';
 import Decimal from 'decimal.js';
 import { ERC20State } from '../erc20-state';
+import { sendMessage } from '../telegram';
 
 interface IdentificationServiceConstructorArgs {
   inTokens: ERC20State[];
@@ -138,6 +139,7 @@ export class IdentificationService {
     );
     const sellingBinancePrice = new Decimal(res.data.bids[0][0]);
     logger.info(`Selling binance price: ${sellingBinancePrice} ${binancePair}`);
+    sendMessage(`Selling binance price: ${sellingBinancePrice} ${binancePair}`);
 
     const startTime = intent.info.cosignerData.decayStartTime;
     if (startTime > nowTimestamp()) {
@@ -182,6 +184,7 @@ export class IdentificationService {
     // It's like an 'actual price' because the price is calculated based on only the output amount of the filler
     const buyingPrice = resolvedOutAmount.div(resolvedInAmount);
     logger.info(`Buying price: ${buyingPrice.toString()} ${pair}`);
+    sendMessage(`Buying price: ${buyingPrice.toString()} ${pair}`);
 
     if (buyingPrice.gt(sellingBinancePrice)) {
       logger.info(
