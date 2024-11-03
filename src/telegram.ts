@@ -2,12 +2,9 @@
 
 import { logger } from 'ethers';
 import TelegramBot from 'node-telegram-bot-api';
+import { config } from './config';
 
-const bot = new TelegramBot(
-  process.env.TELEGRAM_API_KEY ||
-    '8019118829:AAGG17RXl0IGAh_Ox2tTW_4F7FEVazHM3no',
-  { polling: false },
-);
+const bot = new TelegramBot(config.telegramApiKey, { polling: false });
 
 const chatId = -4568114639;
 

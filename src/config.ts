@@ -5,12 +5,15 @@ if (!process.env.PRIVATE_KEY) {
   throw new Error('PRIVATE_KEY environment variable is not set');
 } else if (!process.env.ALCHEMY_API_KEY) {
   throw new Error('ALCHEMY_API_KEY environment variable is not set');
+} else if (!process.env.TELEGRAM_API_KEY) {
+  throw new Error('TELEGRAM_API_KEY environment variable is not set');
 }
 
 interface Config {
   interval: number;
   chainId: ChainId;
   privateKey: string;
+  telegramApiKey: string;
   alchemyUrl: string;
   targetInputTokenAddresses: ContractAddress[];
   targetOutputTokenAddresses: ContractAddress[];
@@ -21,6 +24,7 @@ export const config: Config = {
   interval: 200, // 200ms
   chainId: 42161, // Arbitrum
   privateKey: process.env.PRIVATE_KEY,
+  telegramApiKey: process.env.TELEGRAM_API_KEY,
   alchemyUrl: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
   targetInputTokenAddresses: [
     '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // WETH

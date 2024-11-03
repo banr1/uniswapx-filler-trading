@@ -42,14 +42,14 @@ async function main(): Promise<void> {
   const inTokens: ERC20State[] = [];
   for (const address of targetInputTokenAddresses) {
     const inputToken = ERC20__factory.connect(address, wallet);
-    await inputToken.approve(REACTOR_ADDRESS, constants.MaxUint256);
+    // await inputToken.approve(REACTOR_ADDRESS, constants.MaxUint256);
     const symbol = await inputToken.symbol();
     const decimals = await inputToken.decimals();
     const balance = bigNumberToDecimal(
       await inputToken.balanceOf(wallet.address),
       decimals,
     );
-    logger.info(`Approved🖊️ ${symbol} for UniswapX Reactor`);
+    // logger.info(`Approved🖊️ ${symbol} for UniswapX Reactor`);
     logger.info(`Balance💰: ${balance} ${symbol}`);
     inTokens.push({
       address,
