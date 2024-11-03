@@ -171,14 +171,6 @@ export class IdentificationService {
         .reduce((a, b) => a.add(b), BigNumber.from(0)),
       intentOutToken.decimals,
     );
-    const outBalance = intentOutToken.balance;
-    if (outBalance.lt(resolvedOutAmount)) {
-      logger.info(
-        `An intent found!✨ But balance is not enough (resolved amount: ${resolvedOutAmount.toString()} ${outName} balance: ${outBalance} ${outName})`,
-      );
-      this.lastSkippedIntentHash = rawIntent.orderHash;
-      return null;
-    }
 
     // It's like an 'actual price' because the price is calculated based on only the output amount of the filler
     const buyingPrice = resolvedOutAmount.div(resolvedInAmount);
@@ -188,6 +180,23 @@ export class IdentificationService {
       logger.info(
         `An intent found!✨ But the price is not good (buying price: ${buyingPrice.toString()}, selling binance price: ${sellingBinancePrice})`,
       );
+      return null;
+    }
+
+    const outBalance = intentOutToken.balance;
+    if (outBalance.lt(resolvedOutAmount)) {
+      logger.info(
+        `An intent found!✨ But balance is not enough (resolved amount: ${resolvedOutAmount.toString()} ${outName} balance: ${outBalance} ${outName})`,
+      );
+      sendMessage(
+        `An intent found!✨\n\n` +
+          `- Buying price: ${buyingPrice.toString()} ${pair}\n` +
+          `- Selling binance price: ${sellingBinancePrice} ${inBinanceName}/${outBinanceName}\n\n` +
+          `But the balance is not enough to fill the intent.\n` +
+          `- Necessary balance: ${resolvedOutAmount.toString()} ${outName}\n` +
+          `- Current balance: ${outBalance} ${outName}`,
+      );
+      this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
