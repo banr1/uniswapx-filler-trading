@@ -10,7 +10,6 @@ import { REACTOR_ADDRESS } from './constants';
 import { bigNumberToDecimal, sleep } from './utils';
 import { ERC20__factory } from './types/typechain';
 import { ERC20State } from './erc20-state';
-import { sendMessage } from './telegram';
 
 async function monitorIntent(
   identificationService: IdentificationService,
@@ -35,8 +34,6 @@ async function main(): Promise<void> {
     targetInputTokenAddresses,
     targetOutputTokenAddresses,
   } = config;
-
-  sendMessage('test');
 
   const provider = new providers.JsonRpcProvider(alchemyUrl);
   const wallet = new Wallet(privateKey, provider);
