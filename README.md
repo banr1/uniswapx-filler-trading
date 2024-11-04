@@ -21,12 +21,8 @@ To set up the development environment, follow these steps:
    - `PRIVATE_KEY`: The private key of the wallet that will be used to fill an intent.
    - `ALCHEMY_API_KEY`: The Alchemy API key to use for interacting with the Arbitrum network.
    - `TELEGRAM_API_KEY`: The API key for the Telegram bot.
-
-   like this:
-   ```
-   PRIVATE_KEY=0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
-   ALCHEMY_API_KEY=abcdef1234567890abcdef123456-890
-   ```
+   - `TELEGRAM_CHAT_ID`: The chat ID for the Telegram bot.
+   - `TELEGRAM_TOPIC_ID``: The topic ID for the Telegram bot.
 4. Start the development server:
    ```
    pnpm dev
