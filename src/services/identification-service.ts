@@ -5,7 +5,12 @@ import { FetchIntentsParams } from '../types/fetch-intents-params';
 import axios from 'axios';
 import { RawOpenDutchIntentV2 } from '../types/raw-dutch-intent-v2';
 import { BigNumber } from 'ethers';
-import { bigNumberToDecimal, getTargetToken, nowTimestamp } from '../utils';
+import {
+  bigNumberToDecimal,
+  decimalToShow,
+  getTargetToken,
+  nowTimestamp,
+} from '../utils';
 import { logger } from '../logger';
 import { PERMIT2_ADDRESS } from '../constants';
 import { IntentWithSignature } from '../types/intent-with-signature';
@@ -13,7 +18,7 @@ import { IntentHash } from '../types/hash';
 import { config } from '../config';
 import Decimal from 'decimal.js';
 import { ERC20State } from '../erc20-state';
-import { sendMessage } from '../telegram';
+import { sendTelegramMessage } from '../lib/send-telegram-message';
 
 interface IdentificationServiceConstructorArgs {
   inTokens: ERC20State[];
