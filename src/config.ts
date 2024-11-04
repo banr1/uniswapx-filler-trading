@@ -7,6 +7,14 @@ if (!process.env.PRIVATE_KEY) {
   throw new Error('ALCHEMY_API_KEY environment variable is not set');
 } else if (!process.env.TELEGRAM_API_KEY) {
   throw new Error('TELEGRAM_API_KEY environment variable is not set');
+} else if (!process.env.TELEGRAM_CHAT_ID) {
+  throw new Error('TELEGRAM_CHAT_ID environment variable is not set');
+} else if (isNaN(parseInt(process.env.TELEGRAM_CHAT_ID))) {
+  throw new Error('TELEGRAM_CHAT_ID environment variable must be a number');
+} else if (!process.env.TELEGRAM_TOPIC_ID) {
+  throw new Error('TELEGRAM_TOPIC_ID environment variable is not set');
+} else if (isNaN(parseInt(process.env.TELEGRAM_TOPIC_ID))) {
+  throw new Error('TELEGRAM_TOPIC_ID environment variable must be a number');
 }
 
 interface Config {
@@ -14,6 +22,8 @@ interface Config {
   chainId: ChainId;
   privateKey: string;
   telegramApiKey: string;
+  telegramChatId: number;
+  telegramTopicId: number;
   alchemyUrl: string;
   targetInputTokenAddresses: ContractAddress[];
   targetOutputTokenAddresses: ContractAddress[];
@@ -25,6 +35,8 @@ export const config: Config = {
   chainId: 42161, // Arbitrum
   privateKey: process.env.PRIVATE_KEY,
   telegramApiKey: process.env.TELEGRAM_API_KEY,
+  telegramChatId: parseInt(process.env.TELEGRAM_CHAT_ID),
+  telegramTopicId: parseInt(process.env.TELEGRAM_TOPIC_ID),
   alchemyUrl: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
   targetInputTokenAddresses: [
     '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // WETH

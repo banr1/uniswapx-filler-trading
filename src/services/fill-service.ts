@@ -29,6 +29,7 @@ export class FillService {
       await this.executeFill(intent, signature);
     } catch (error) {
       logger.error(`Error occurred while filling the intent 🚨: ${error}`);
+      sendMessage('The intent fill was not successful 🚨');
       throw error;
     }
   }
@@ -46,8 +47,8 @@ export class FillService {
     logger.info('Starting to fill the intent 🦄');
     const tx = await this.reactor.execute(signedIntent, { gasLimit });
     const receipt = await tx.wait();
-    logger.info('Filled the intent successfully!!🎉');
-    sendMessage(`Filled the intent successfully!!🎉`);
+    logger.info('The intent fill was successfully executed 🎉');
+    sendMessage('The intent fill was successfully executed 🎉');
     logger.info(`receipt: ${JSON.stringify(receipt)}`);
     return receipt;
   }

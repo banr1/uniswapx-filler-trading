@@ -203,7 +203,11 @@ export class IdentificationService {
     sendMessage(
       `An intent found!✨\n\n` +
         `- Buying price: ${buyingPrice.toString()} ${pair}\n` +
-        `- Selling binance price: ${sellingBinancePrice} ${inBinanceName}/${outBinanceName}`,
+        `- Selling binance price: ${sellingBinancePrice} ${inBinanceName}/${outBinanceName}\n\n` +
+        `And the balance is enough to fill the intent.\n` +
+        `- Necessary balance: ${resolvedOutAmount.toString()} ${outName}\n` +
+        `- Current balance: ${outBalance} ${outName}\n\n` +
+        `So let's fill the intent!`,
     );
 
     logger.info('An suitable intent found!✨');

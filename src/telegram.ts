@@ -6,12 +6,12 @@ import { config } from './config';
 
 const bot = new TelegramBot(config.telegramApiKey, { polling: false });
 
-const chatId = -4568114639;
-
 export async function sendMessage(message: string) {
   try {
-    await bot.sendMessage(chatId, message);
-    logger.info('Message sent successfully');
+    await bot.sendMessage(config.telegramChatId, message, {
+      message_thread_id: config.telegramTopicId,
+    });
+    logger.info('Telegram message sent successfully');
   } catch (error) {
     throw new Error(`Error sending message: ${error}`);
   }
