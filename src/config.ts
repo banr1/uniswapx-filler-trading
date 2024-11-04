@@ -24,6 +24,7 @@ interface Config {
   telegramApiKey: string;
   telegramChatId: number;
   telegramTopicId: number;
+  uniswapxApiBaseUrl: string;
   alchemyUrl: string;
   targetInputTokenAddresses: ContractAddress[];
   targetOutputTokenAddresses: ContractAddress[];
@@ -37,6 +38,7 @@ export const config: Config = {
   telegramApiKey: process.env.TELEGRAM_API_KEY,
   telegramChatId: parseInt(process.env.TELEGRAM_CHAT_ID),
   telegramTopicId: parseInt(process.env.TELEGRAM_TOPIC_ID),
+  uniswapxApiBaseUrl: 'https://api.uniswap.org',
   alchemyUrl: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
   targetInputTokenAddresses: [
     '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // WETH
