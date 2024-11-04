@@ -186,29 +186,35 @@ export class IdentificationService {
     }
 
     const outBalance = intentOutToken.balance;
+
+    const buyingPriceToShow = decimalToShow(buyingPrice, 6);
+    const sellingBinancePriceToShow = decimalToShow(sellingBinancePrice, 6);
+    const resolvedOutAmountToShow = decimalToShow(resolvedOutAmount, 6);
+    const outBalanceToShow = decimalToShow(outBalance, 6);
+
     if (outBalance.lt(resolvedOutAmount)) {
       logger.info(
-        `An intent found!✨ But balance is not enough (resolved amount: ${resolvedOutAmount.toString()} ${outName} balance: ${outBalance} ${outName})`,
+        `An intent found!✨ But balance is not enough (resolved amount: ${resolvedOutAmountToShow.toString()} ${outName} balance: ${outBalanceToShow} ${outName})`,
       );
-      sendMessage(
+      sendTelegramMessage(
         `An intent found!✨\n\n` +
-          `- Buying price: ${buyingPrice.toString()} ${pair}\n` +
-          `- Selling binance price: ${sellingBinancePrice} ${inBinanceName}/${outBinanceName}\n\n` +
+          `- Buying price: ${buyingPriceToShow.toString()} ${pair}\n` +
+          `- Selling binance price: ${sellingBinancePriceToShow} ${inBinanceName}/${outBinanceName}\n\n` +
           `But the balance is not enough to fill the intent.\n` +
-          `- Necessary balance: ${resolvedOutAmount.toString()} ${outName}\n` +
-          `- Current balance: ${outBalance} ${outName}`,
+          `- Necessary balance: ${resolvedOutAmountToShow.toString()} ${outName}\n` +
+          `- Current balance: ${outBalanceToShow} ${outName}`,
       );
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
-    sendMessage(
+    sendTelegramMessage(
       `An intent found!✨\n\n` +
-        `- Buying price: ${buyingPrice.toString()} ${pair}\n` +
-        `- Selling binance price: ${sellingBinancePrice} ${inBinanceName}/${outBinanceName}\n\n` +
+        `- Buying price: ${buyingPriceToShow.toString()} ${pair}\n` +
+        `- Selling binance price: ${sellingBinancePriceToShow} ${inBinanceName}/${outBinanceName}\n\n` +
         `And the balance is enough to fill the intent.\n` +
-        `- Necessary balance: ${resolvedOutAmount.toString()} ${outName}\n` +
-        `- Current balance: ${outBalance} ${outName}\n\n` +
+        `- Necessary balance: ${resolvedOutAmountToShow.toString()} ${outName}\n` +
+        `- Current balance: ${outBalanceToShow} ${outName}\n\n` +
         `So let's fill the intent!`,
     );
 

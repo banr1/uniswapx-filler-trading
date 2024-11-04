@@ -6,7 +6,7 @@ import { logger } from '../logger';
 import { ContractReceipt } from 'ethers';
 import { IntentWithSignature } from '../types/intent-with-signature';
 import { SignedOrderStruct } from '@banr1/uniswapx-sdk/dist/src/contracts/V2DutchOrderReactor';
-import { sendMessage } from '../telegram';
+import { sendTelegramMessage } from '../lib/send-telegram-message';
 
 interface FillServiceConstructorArgs {
   reactor: V2DutchOrderReactor;
@@ -29,7 +29,7 @@ export class FillService {
       await this.executeFill(intent, signature);
     } catch (error) {
       logger.error(`Error occurred while filling the intent 🚨: ${error}`);
-      sendMessage('The intent fill was not successful 🚨');
+      sendTelegramMessage('The intent fill was not successful 🚨');
       throw error;
     }
   }
@@ -48,7 +48,7 @@ export class FillService {
     const tx = await this.reactor.execute(signedIntent, { gasLimit });
     const receipt = await tx.wait();
     logger.info('The intent fill was successfully executed 🎉');
-    sendMessage('The intent fill was successfully executed 🎉');
+    sendTelegramMessage('The intent fill was successfully executed 🎉');
     logger.info(`receipt: ${JSON.stringify(receipt)}`);
     return receipt;
   }

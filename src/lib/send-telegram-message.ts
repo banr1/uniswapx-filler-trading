@@ -1,12 +1,12 @@
-// lib/telegram.ts
+// lib/send-telegram-message.ts
 
 import { logger } from 'ethers';
 import TelegramBot from 'node-telegram-bot-api';
-import { config } from './config';
+import { config } from '../config';
 
 const bot = new TelegramBot(config.telegramApiKey, { polling: false });
 
-export async function sendMessage(message: string) {
+export async function sendTelegramMessage(message: string) {
   try {
     await bot.sendMessage(config.telegramChatId, message, {
       message_thread_id: config.telegramTopicId,

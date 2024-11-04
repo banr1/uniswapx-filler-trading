@@ -33,3 +33,17 @@ export function topicToAddress(topic: string): Address {
 export function bigNumberToDecimal(num: BigNumber, decimals: number): Decimal {
   return new Decimal(formatUnits(num, decimals));
 }
+
+export function decimalToShow(
+  num: Decimal,
+  digits: number,
+  isAbsolute: boolean = false,
+): string {
+  if (isAbsolute) {
+    return num
+      .toDecimalPlaces(digits, Decimal.ROUND_HALF_UP)
+      .toFixed(digits)
+      .toString();
+  }
+  return num.toSignificantDigits(digits, Decimal.ROUND_HALF_UP).toString();
+}
