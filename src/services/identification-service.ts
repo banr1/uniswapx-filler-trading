@@ -202,7 +202,7 @@ export class IdentificationService {
         `An intent found!✨ But balance is not enough (resolved amount: ${resolvedOutAmountToShow.toString()} ${outName} balance: ${outBalanceToShow} ${outName})`,
       );
       sendTelegramMessage(
-        `An intent found!✨\n\n` +
+        `An intent found!✨\n` +
           `- Buying price: ${buyingPriceToShow.toString()} ${pair}\n` +
           `- Selling binance price: ${sellingBinancePriceToShow} ${inBinanceName}/${outBinanceName}\n\n` +
           `But the balance is not enough to fill the intent.\n` +
@@ -214,7 +214,7 @@ export class IdentificationService {
     }
 
     sendTelegramMessage(
-      `An intent found!✨\n\n` +
+      `An intent found!✨\n` +
         `- Buying price: ${buyingPriceToShow.toString()} ${pair}\n` +
         `- Selling binance price: ${sellingBinancePriceToShow} ${inBinanceName}/${outBinanceName}\n\n` +
         `And the balance is enough to fill the intent.\n` +
