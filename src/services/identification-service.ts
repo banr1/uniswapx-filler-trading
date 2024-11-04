@@ -159,8 +159,8 @@ export class IdentificationService {
       return null;
     }
 
-    logger.info('(resolution start timing)');
-    const resolution = intent.resolve({ timestamp: nowTimestamp() });
+    const resolutionTiming = nowTimestamp() + 1;
+    const resolution = intent.resolve({ timestamp: resolutionTiming });
     const resolvedInAmount = bigNumberToDecimal(
       resolution.input.amount,
       intentInToken.decimals,
@@ -174,7 +174,9 @@ export class IdentificationService {
 
     // It's like an 'actual price' because the price is calculated based on only the output amount of the filler
     const buyingPrice = resolvedOutAmount.div(resolvedInAmount);
-    logger.info(`Buying price: ${buyingPrice.toString()} ${pair}`);
+    logger.info(
+      `Buying price: ${buyingPrice.toString()} ${pair} (resolution timing: ${new Date(resolutionTiming * 1000).toTimeString()})`,
+    );
 
     if (buyingPrice.gt(sellingBinancePrice)) {
       logger.info(
