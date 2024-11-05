@@ -92,9 +92,8 @@ async function main(): Promise<void> {
   const reactor = V2DutchOrderReactor__factory.connect(REACTOR_ADDRESS, wallet);
   const fillService = new FillService({ reactor });
 
+  let isFilled: boolean = true;
   while (true) {
-    let isFilled: boolean = true;
-
     if (isFilled) {
       // Define the tokens
       const { inTokens, outTokens } = await defineTokens(
@@ -116,8 +115,9 @@ async function main(): Promise<void> {
       );
     }
 
-    isFilled =
-      (await monitorIntent(identificationService!, fillService)) || false;
+    isFilled = (await monitorIntent(identificationService!, fillService))
+      ? true
+      : false;
     await sleep(interval);
   }
 }
