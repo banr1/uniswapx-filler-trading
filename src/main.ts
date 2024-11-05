@@ -14,15 +14,16 @@ import { ERC20State } from './erc20-state';
 async function monitorIntent(
   identificationService: IdentificationService,
   fillService: FillService,
-): Promise<void> {
+): Promise<boolean | null> {
   // Step 1: Identify the intent
   // Identify the intent from the UniswapX API
   const intent = await identificationService.identifyIntent();
-  if (intent === null) return;
+  if (intent === null) return null;
 
   // Step 2: Fill the intent
   // Fill the intent with the signature
-  await fillService.fillIntent(intent);
+  const isFilled = await fillService.fillIntent(intent);
+  return isFilled;
 }
 
 async function main(): Promise<void> {
@@ -93,7 +94,10 @@ async function main(): Promise<void> {
   );
 
   while (true) {
-    await monitorIntent(identificationService, fillService);
+    const isFilled = await monitorIntent(identificationService, fillService);
+    if (isFilled) {
+      logger.info('Intent filled successfully 🎉');
+    }
     await sleep(interval);
   }
 }
