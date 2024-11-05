@@ -9,7 +9,6 @@ import {
   getTargetToken,
   nowTimestamp,
 } from '../utils';
-import { logger } from '../logger';
 import { PERMIT2_ADDRESS } from '../constants';
 import { IntentWithSignature } from '../types/intent-with-signature';
 import { IntentHash } from '../types/hash';
@@ -18,6 +17,7 @@ import Decimal from 'decimal.js';
 import { ERC20State } from '../erc20-state';
 import { sendTelegramMessage } from '../lib/send-telegram-message';
 import { fetchIntents } from '../lib/fetch-intents';
+import winston from 'winston';
 
 interface IdentificationServiceConstructorArgs {
   inTokens: ERC20State[];
@@ -43,8 +43,8 @@ export class IdentificationService {
     try {
       return await this._identifyIntent();
     } catch (error) {
-      logger.error(`Error occurred while identifying intent: ${error}`);
-      throw error;
+      winston.error(`Error occurred while identifying intent: ${error}`);
+      return null;
     }
   }
 
@@ -53,7 +53,7 @@ export class IdentificationService {
     const rawIntents = await fetchIntents();
     if (rawIntents.length === 0) {
       if (new Date().getSeconds() === 0) {
-        logger.info('No intents found 🍪');
+        winston.info('No intents found 🍪');
         this.lastSkippedIntentHash = null;
       }
     }
@@ -63,14 +63,14 @@ export class IdentificationService {
     if (config.ignoreIntentHashes.includes(rawIntent.orderHash)) {
       // log only when seconds is 0
       if (new Date().getSeconds() === 0) {
-        logger.info('The intent is in the ignore list. Skip it 🥿');
+        winston.info('The intent is in the ignore list. Skip it 🥿');
       }
       return null;
     }
 
     // If the same intent is found again, skip it
     if (this.lastSkippedIntentHash === rawIntent.orderHash) {
-      logger.info(
+      winston.info(
         `The same intent found again. Skip it 🦋: ${rawIntent.orderHash}`,
       );
       return null;
@@ -80,7 +80,7 @@ export class IdentificationService {
       rawIntent.type !== OrderType.Dutch_V2 ||
       rawIntent.orderStatus !== 'open'
     ) {
-      logger.info('An intent found!✨ But it is not a Dutch V2 open intent.');
+      winston.info('An intent found!✨ But it is not a Dutch V2 open intent.');
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
@@ -92,14 +92,14 @@ export class IdentificationService {
     );
 
     if (!intent.info.outputs[0]) {
-      logger.info('An intent found!✨ But it has no output token.');
+      winston.info('An intent found!✨ But it has no output token.');
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
 
     const intentInToken = getTargetToken(intent.info.input, this.inTokens);
     if (!intentInToken) {
-      logger.info('An intent found!✨ But input token is not targeted');
+      winston.info('An intent found!✨ But input token is not targeted');
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
@@ -108,7 +108,7 @@ export class IdentificationService {
       this.outTokens,
     );
     if (!intentOutToken) {
-      logger.info('An intent found!✨ But output token is not targeted');
+      winston.info('An intent found!✨ But output token is not targeted');
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
@@ -125,12 +125,14 @@ export class IdentificationService {
       `https://api.binance.us/api/v3/depth?symbol=${binancePair}&limit=1`,
     );
     const sellingBinancePrice = new Decimal(res.data.bids[0][0]);
-    logger.info(`Selling binance price: ${sellingBinancePrice} ${binancePair}`);
+    winston.info(
+      `Selling binance price: ${sellingBinancePrice} ${binancePair}`,
+    );
 
     const endTime = intent.info.cosignerData.decayEndTime;
     const deadline = intent.info.deadline;
     if (endTime < nowTimestamp() || deadline < nowTimestamp()) {
-      logger.info(
+      winston.info(
         `An intent found!✨ But it is expired: ${new Date(endTime * 1000).toTimeString()}`,
       );
       this.lastSkippedIntentHash = rawIntent.orderHash;
@@ -152,12 +154,12 @@ export class IdentificationService {
 
     // It's like an 'actual price' because the price is calculated based on only the output amount of the filler
     const buyingPrice = resolvedOutAmount.div(resolvedInAmount);
-    logger.info(
+    winston.info(
       `Buying price: ${buyingPrice.toString()} ${pair} (resolution timing: ${new Date(resolutionTiming * 1000).toTimeString()})`,
     );
 
     if (buyingPrice.gt(sellingBinancePrice)) {
-      logger.info(
+      winston.info(
         `An intent found!✨ But the price is not good (buying price: ${buyingPrice.toString()}, selling binance price: ${sellingBinancePrice})`,
       );
       return null;
@@ -171,7 +173,7 @@ export class IdentificationService {
     const outBalanceToShow = decimalToShow(outBalance, 6);
 
     if (outBalance.lt(resolvedOutAmount)) {
-      logger.info(
+      winston.info(
         `An intent found!✨ But balance is not enough (resolved amount: ${resolvedOutAmountToShow.toString()} ${outName} balance: ${outBalanceToShow} ${outName})`,
       );
       sendTelegramMessage(
@@ -196,8 +198,8 @@ export class IdentificationService {
         `So let's fill the intent!`,
     );
 
-    logger.info('An suitable intent found!✨');
-    logger.info(`intent: ${JSON.stringify(intent)}`);
+    winston.info('An suitable intent found!✨');
+    winston.info(`intent: ${JSON.stringify(intent)}`);
 
     return {
       intent,
