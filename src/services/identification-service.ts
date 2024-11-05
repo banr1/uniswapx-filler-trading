@@ -1,9 +1,7 @@
 // services/identification-service.ts
 
 import { CosignedV2DutchOrder, OrderType } from '@banr1/uniswapx-sdk';
-import { FetchIntentsParams } from '../types/fetch-intents-params';
 import axios from 'axios';
-import { RawOpenDutchIntentV2 } from '../types/raw-dutch-intent-v2';
 import { BigNumber } from 'ethers';
 import {
   bigNumberToDecimal,
@@ -19,6 +17,7 @@ import { config } from '../config';
 import Decimal from 'decimal.js';
 import { ERC20State } from '../erc20-state';
 import { sendTelegramMessage } from '../lib/send-telegram-message';
+import { fetchIntents } from '../lib/fetch-intents';
 
 interface IdentificationServiceConstructorArgs {
   inTokens: ERC20State[];
@@ -32,7 +31,6 @@ interface IdentificationServiceConstructorArgs {
 export class IdentificationService {
   private inTokens: ERC20State[];
   private outTokens: ERC20State[];
-  private apiBaseUrl = 'https://api.uniswap.org';
   private lastSkippedIntentHash: IntentHash | null = null;
 
   constructor({ inTokens, outTokens }: IdentificationServiceConstructorArgs) {
@@ -52,31 +50,15 @@ export class IdentificationService {
 
   private async _identifyIntent(): Promise<IntentWithSignature | null> {
     // Fetch an intent that is open, Dutch V2, and latest
-    const params: FetchIntentsParams = {
-      chainId: config.chainId,
-      limit: 1,
-      orderStatus: 'open',
-      sortKey: 'createdAt',
-      desc: true,
-      sort: 'lt(9000000000)',
-      orderType: OrderType.Dutch_V2,
-      includeV2: true,
-    };
-    const response = await axios.get<{ orders: RawOpenDutchIntentV2[] }>(
-      `${this.apiBaseUrl}/v2/orders`,
-      { params },
-    );
-    const nIntents = response.data.orders.length;
-    if (nIntents === 0) {
-      // log only when seconds is 0
+    const rawIntents = await fetchIntents();
+    if (rawIntents.length === 0) {
       if (new Date().getSeconds() === 0) {
         logger.info('No intents found 🍪');
         this.lastSkippedIntentHash = null;
       }
-      return null;
     }
 
-    const rawIntent = response.data.orders[0]!;
+    const rawIntent = rawIntents[0]!;
     // If the intent is in the ignore list, skip it
     if (config.ignoreIntentHashes.includes(rawIntent.orderHash)) {
       // log only when seconds is 0
@@ -117,7 +99,7 @@ export class IdentificationService {
 
     const intentInToken = getTargetToken(intent.info.input, this.inTokens);
     if (!intentInToken) {
-      logger.info(`An intent found!✨ But input token is not targeted`);
+      logger.info('An intent found!✨ But input token is not targeted');
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
@@ -126,7 +108,7 @@ export class IdentificationService {
       this.outTokens,
     );
     if (!intentOutToken) {
-      logger.info(`An intent found!✨ But output token is not targeted`);
+      logger.info('An intent found!✨ But output token is not targeted');
       this.lastSkippedIntentHash = rawIntent.orderHash;
       return null;
     }
@@ -145,15 +127,6 @@ export class IdentificationService {
     const sellingBinancePrice = new Decimal(res.data.bids[0][0]);
     logger.info(`Selling binance price: ${sellingBinancePrice} ${binancePair}`);
 
-    const startTime = intent.info.cosignerData.decayStartTime;
-    if (startTime > nowTimestamp()) {
-      logger.info(
-        `An intent found!✨ But it is not started yet: ${new Date(startTime * 1000).toTimeString()}`,
-      );
-      this.lastSkippedIntentHash = rawIntent.orderHash;
-      return null;
-    }
-
     const endTime = intent.info.cosignerData.decayEndTime;
     const deadline = intent.info.deadline;
     if (endTime < nowTimestamp() || deadline < nowTimestamp()) {
@@ -164,7 +137,7 @@ export class IdentificationService {
       return null;
     }
 
-    const resolutionTiming = nowTimestamp() + 1;
+    const resolutionTiming = nowTimestamp();
     const resolution = intent.resolve({ timestamp: resolutionTiming });
     const resolvedInAmount = bigNumberToDecimal(
       resolution.input.amount,
