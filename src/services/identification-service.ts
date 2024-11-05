@@ -127,15 +127,6 @@ export class IdentificationService {
     const sellingBinancePrice = new Decimal(res.data.bids[0][0]);
     logger.info(`Selling binance price: ${sellingBinancePrice} ${binancePair}`);
 
-    const startTime = intent.info.cosignerData.decayStartTime;
-    if (startTime > nowTimestamp()) {
-      logger.info(
-        `An intent found!✨ But it is not started yet: ${new Date(startTime * 1000).toTimeString()}`,
-      );
-      this.lastSkippedIntentHash = rawIntent.orderHash;
-      return null;
-    }
-
     const endTime = intent.info.cosignerData.decayEndTime;
     const deadline = intent.info.deadline;
     if (endTime < nowTimestamp() || deadline < nowTimestamp()) {
@@ -146,7 +137,7 @@ export class IdentificationService {
       return null;
     }
 
-    const resolutionTiming = nowTimestamp() + 1;
+    const resolutionTiming = nowTimestamp();
     const resolution = intent.resolve({ timestamp: resolutionTiming });
     const resolvedInAmount = bigNumberToDecimal(
       resolution.input.amount,
