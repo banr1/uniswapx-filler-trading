@@ -1,6 +1,6 @@
 // services/identification-service.ts
 
-import { CosignedV2DutchOrder, OrderType } from '@banr1/uniswapx-sdk';
+import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
 import axios from 'axios';
 import { BigNumber } from 'ethers';
 import {
@@ -76,26 +76,11 @@ export class IdentificationService {
       return null;
     }
 
-    if (
-      rawIntent.type !== OrderType.Dutch_V2 ||
-      rawIntent.orderStatus !== 'open'
-    ) {
-      logger.info('An intent found!✨ But it is not a Dutch V2 open intent.');
-      this.lastSkippedIntentHash = rawIntent.orderHash;
-      return null;
-    }
-
     const intent = CosignedV2DutchOrder.parse(
       rawIntent.encodedOrder,
       config.chainId,
       PERMIT2_ADDRESS,
     );
-
-    if (!intent.info.outputs[0]) {
-      logger.info('An intent found!✨ But it has no output token.');
-      this.lastSkippedIntentHash = rawIntent.orderHash;
-      return null;
-    }
 
     const intentInToken = getTargetToken(intent.info.input, this.inTokens);
     if (!intentInToken) {
@@ -104,7 +89,7 @@ export class IdentificationService {
       return null;
     }
     const intentOutToken = getTargetToken(
-      intent.info.outputs[0],
+      intent.info.outputs[0]!,
       this.outTokens,
     );
     if (!intentOutToken) {
