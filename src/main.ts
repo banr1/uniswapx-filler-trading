@@ -9,7 +9,7 @@ import { REACTOR_ADDRESS } from './constants';
 import { bigNumberToDecimal, sleep } from './utils';
 import { ERC20__factory } from './types/typechain';
 import { ERC20State } from './erc20-state';
-import winston from 'winston';
+import { logger } from './logger';
 
 async function defineTokens(
   targetInputTokenAddresses: string[],
@@ -27,7 +27,7 @@ async function defineTokens(
       decimals,
     );
     // winston.info(`Approved🖊️ ${symbol} for UniswapX Reactor`);
-    winston.info(`Balance💰: ${balance} ${symbol}`);
+    logger.info(`Balance💰: ${balance} ${symbol}`);
     inTokens.push({
       address,
       symbol,
@@ -47,8 +47,8 @@ async function defineTokens(
       await outputToken.balanceOf(wallet.address),
       decimals,
     );
-    winston.info(`Approved🖊️ ${symbol} for UniswapX Reactor`);
-    winston.info(`Balance💰: ${balance} ${symbol}`);
+    logger.info(`Approved🖊️ ${symbol} for UniswapX Reactor`);
+    logger.info(`Balance💰: ${balance} ${symbol}`);
     outTokens.push({
       address,
       symbol,
@@ -103,7 +103,7 @@ async function main(): Promise<void> {
         wallet,
       );
 
-      winston.info('Preparation completed 🌱');
+      logger.info('Preparation completed 🌱');
 
       // Initialize the services
       identificationService = new IdentificationService({
@@ -111,7 +111,7 @@ async function main(): Promise<void> {
         outTokens,
       });
 
-      winston.info(
+      logger.info(
         `Starting the main function 🚀 with ${interval / 1000}s interval`,
       );
     }
