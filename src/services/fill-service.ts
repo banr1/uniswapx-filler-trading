@@ -2,11 +2,11 @@
 
 import { V2DutchOrderReactor } from '@banr1/uniswapx-sdk/dist/src/contracts';
 import { CosignedV2DutchOrder } from '@banr1/uniswapx-sdk';
-import { logger } from '../logger';
 import { ContractReceipt } from 'ethers';
 import { IntentWithSignature } from '../types/intent-with-signature';
 import { SignedOrderStruct } from '@banr1/uniswapx-sdk/dist/src/contracts/V2DutchOrderReactor';
 import { sendTelegramMessage } from '../lib/send-telegram-message';
+import { logger } from '../logger';
 
 interface FillServiceConstructorArgs {
   reactor: V2DutchOrderReactor;
@@ -26,7 +26,7 @@ export class FillService {
   async fillIntent({
     intent,
     signature,
-  }: IntentWithSignature): Promise<boolean | null> {
+  }: IntentWithSignature): Promise<boolean> {
     // let txReceipt: ContractReceipt;
     try {
       await this.executeFill(intent, signature);
@@ -34,7 +34,7 @@ export class FillService {
     } catch (error) {
       sendTelegramMessage('The intent fill was not successful 🚨');
       logger.error(`Error occurred while filling the intent 🚨: ${error}`);
-      throw error;
+      return false;
     }
   }
 

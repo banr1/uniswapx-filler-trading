@@ -9,7 +9,6 @@ import {
   getTargetToken,
   nowTimestamp,
 } from '../utils';
-import { logger } from '../logger';
 import { PERMIT2_ADDRESS } from '../constants';
 import { IntentWithSignature } from '../types/intent-with-signature';
 import { IntentHash } from '../types/hash';
@@ -18,6 +17,7 @@ import Decimal from 'decimal.js';
 import { ERC20State } from '../erc20-state';
 import { sendTelegramMessage } from '../lib/send-telegram-message';
 import { fetchIntents } from '../lib/fetch-intents';
+import { logger } from '../logger';
 
 interface IdentificationServiceConstructorArgs {
   inTokens: ERC20State[];
@@ -44,7 +44,7 @@ export class IdentificationService {
       return await this._identifyIntent();
     } catch (error) {
       logger.error(`Error occurred while identifying intent: ${error}`);
-      throw error;
+      return null;
     }
   }
 
